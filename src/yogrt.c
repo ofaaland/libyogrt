@@ -94,7 +94,7 @@ static inline void init_yogrt(void)
 		}
 
 		if ((backend_handle = dlopen(BACKEND_LIB, RTLD_NOW)) == NULL) {
-			debug("dlopen of backend failed: %s\n", dlerror());
+			debug("dlopen failed: %s\n", dlerror());
 			return;
 		}
 		
