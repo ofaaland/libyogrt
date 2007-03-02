@@ -44,7 +44,9 @@ for subpackage in none slurm lcrm moab; do
     done
 
     cd $TMP
-    ar -Xany cr libyogrt-${subpackage}.a $TMP/$subpackage/*/*
+    if [ -d $TMP/$subpackage ]; then
+        ar -Xany cr libyogrt-${subpackage}.a $TMP/$subpackage/*/*
+    fi
     cd $TOP
 done
 rm -rf $TMP/orig
