@@ -61,7 +61,7 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(pkgincludedir)"
 libLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libyogrt_la_DEPENDENCIES =
-am_libyogrt_la_OBJECTS = yogrt.lo
+am_libyogrt_la_OBJECTS = libyogrt_la-yogrt.lo
 libyogrt_la_OBJECTS = $(am_libyogrt_la_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
@@ -227,6 +227,10 @@ SUBDIRS = none $(SLURM_DIR) $(LCRM_DIR) $(MOAB_DIR)
 lib_LTLIBRARIES = libyogrt.la
 libyogrt_la_SOURCES = yogrt.c
 libyogrt_la_LIBADD = -ldl
+libyogrt_la_CPPFLAGS = \
+	-DBACKENDDIR=\"$(libdir)/libyogrt\" \
+	-DCONFIGPATH=\"$(sysconfdir)\"
+
 libyogrt_la_LDFLAGS = \
 	-no-undefined \
 	-export-symbols-regex "^i?yogrt_.*" \
@@ -302,7 +306,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/yogrt.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libyogrt_la-yogrt.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	if $(COMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
@@ -324,6 +328,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
+
+libyogrt_la-yogrt.lo: yogrt.c
+@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libyogrt_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libyogrt_la-yogrt.lo -MD -MP -MF "$(DEPDIR)/libyogrt_la-yogrt.Tpo" -c -o libyogrt_la-yogrt.lo `test -f 'yogrt.c' || echo '$(srcdir)/'`yogrt.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libyogrt_la-yogrt.Tpo" "$(DEPDIR)/libyogrt_la-yogrt.Plo"; else rm -f "$(DEPDIR)/libyogrt_la-yogrt.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='yogrt.c' object='libyogrt_la-yogrt.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libyogrt_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libyogrt_la-yogrt.lo `test -f 'yogrt.c' || echo '$(srcdir)/'`yogrt.c
 
 mostlyclean-libtool:
 	-rm -f *.lo

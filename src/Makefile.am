@@ -13,6 +13,9 @@ SUBDIRS = none $(SLURM_DIR) $(LCRM_DIR) $(MOAB_DIR)
 lib_LTLIBRARIES = libyogrt.la
 libyogrt_la_SOURCES = yogrt.c
 libyogrt_la_LIBADD = -ldl
+libyogrt_la_CPPFLAGS = \
+	-DBACKENDDIR=\"$(libdir)/libyogrt\" \
+	-DCONFIGPATH=\"$(sysconfdir)\"
 libyogrt_la_LDFLAGS = \
 	-no-undefined \
 	-export-symbols-regex "^i?yogrt_.*" \
