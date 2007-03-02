@@ -16,6 +16,7 @@ LICENSE
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <ctype.h>
 #include <dlfcn.h>
 
 #include "yogrt.h"
@@ -45,9 +46,29 @@ static struct backend_operations {
 	int    (*rank)     (void);
 } backend;
 
+
+static inline void strip_whitespace(char *str)
+{
+	int i, j;
+	int len = strlen(str);
+
+	for (i = 0, j = 0; i < len; i++) {
+		if (!isspace(str[i])) {
+			str[j] = str[i];
+			j++;
+		}
+	}
+	str[j] = '\0';
+}
+
 static inline void read_config_file(void)
 {
 	FILE *fp;
+	char line[256];
+	char *eq_ptr;
+	int len;
+	int content_flag;
+	int i;
 
 	fp = fopen(CONFIGPATH "/yogrt.conf", "r");
 	if (fp == NULL) {
@@ -56,6 +77,84 @@ static inline void read_config_file(void)
 	}
 
 	debug("Reading config file " CONFIGPATH "/yogrt.conf.\n");
+	while (fgets(line, 256, fp)) {
+		char *key, *value;
+
+		len = strlen(line);
+		if (len == 0)
+			continue;
+		if (line[0] == '#')
+			continue;
+		content_flag = 0;
+		eq_ptr = NULL;
+		for (i = 0; i < len; i++) {
+			if (!isspace(line[i])) {
+				content_flag = 1;
+				if (line[i] == '=')
+					eq_ptr = line + i;
+			}
+			if (line[i] == '\n') /* strip newline character */
+				line[i] = '\0';
+		}
+		if (!content_flag)
+			continue;
+		if (eq_ptr == NULL)
+			continue;
+
+		key = line;
+		value = eq_ptr + 1;
+		*eq_ptr = '\0';
+
+		strip_whitespace(key);
+		strip_whitespace(value);
+
+		if (strcasecmp(key, "debug") == 0
+		    || strcasecmp(key, "yogrt_debug") == 0) {
+			verbosity = (int)atol(value);
+			debug("In yogrt.conf: %s=%d\n", key, verbosity);
+		} else if (strcasecmp(key, "interval1") == 0
+			   || strcasecmp(key, "yogrt_interval1") == 0) {
+			interval1 = (int)atol(value);
+			debug("In yogrt.conf: %s=%d\n", key, interval1);
+			if (interval1 < 0) {
+				interval1 = 0;
+				debug("Negative number not allowed,"
+				      " setting interval1 to 0\n");
+			}
+		} else if (strcasecmp(key, "interval2") == 0
+			   || strcasecmp(key, "yogrt_interval2") == 0) {
+			interval2 = (int)atol(value);
+			debug("In yogrt.conf: %s=%d\n", key, interval2);
+			if (interval2 < 0) {
+				interval2 = 0;
+				debug("Negative number not allowed,"
+				      " setting interval2 to 0\n");
+			}
+		} else if (strcasecmp(key, "interval2_start") == 0
+			   || strcasecmp(key, "yogrt_interval2_start") == 0) {
+			interval2_start = (int)atol(value);
+			debug("In yogrt.conf: %s=%d\n", key, interval2_start);
+			if (interval2_start < 0) {
+				interval2_start = 0;
+				debug("Negative number not allowed,"
+				      " setting interval2_start to 0\n");
+			}
+		} else if (strcasecmp(key, "remaining") == 0
+			   || strcasecmp(key, "yogrt_remaining") == 0) {
+			cached_time_rem = (int)atol(value);
+			last_update = time(NULL);
+			debug("In yogrt.conf: %s=%d\n", key, cached_time_rem);
+			if (cached_time_rem < 0) {
+				cached_time_rem = -1;
+				debug("Negative number not allowed,  leaving"
+				      " YOGRT_DEFAULT_LIMIT uninitialized\n");
+			}
+		} else if (strcasecmp(key, "backend") == 0
+			   || strcasecmp(key, "yogrt_backend") == 0) {
+			strncpy(backend_name, value, 64);
+			debug("In yogrt.conf: %s=%s\n", key, backend_name);
+		}
+	}
 	fclose(fp);
 }
 
