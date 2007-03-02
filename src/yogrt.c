@@ -8,10 +8,17 @@ LICENSE
  ***************************************************************************/
 
 #include <stdlib.h>
+#include <errno.h>
 #include <time.h>
 #include <limits.h>
+#include <dlfcn.h>
+
 #include "yogrt.h"
 #include "internal_yogrt.h"
+
+#define BACKEND_LIB "/home/morrone/local/lib/libyogrt/libyogrt-none.so"
+#define FAILED_UPDATE_INTERVAL 300
+#define REMAINING(now) (cached_time_rem - ((now) - last_update))
 
 int verbosity = 0;
 static int initialized = 0; /* flag */
@@ -24,9 +31,14 @@ static int interval2_start = 1800; /* 30 minutes before the end */
 static int cached_time_rem = -1;
 static time_t last_update = (time_t)-1; /* of cached_time_rem */
 static int last_update_failed = 0; /* flag */
-#define FAILED_UPDATE_INTERVAL 300
 
-#define REMAINING(now) (cached_time_rem - ((now) - last_update))
+static void *backend_handle = NULL;
+static struct backend_operations {
+	void   (*init)     (int verb);
+	char * (*name)     (void);
+	int    (*remaining)(time_t now, time_t last_update, int chached);
+	int    (*rank)     (void);
+} backend;
 
 static inline void init_yogrt(void)
 {
@@ -38,8 +50,6 @@ static inline void init_yogrt(void)
 		if ((p = getenv("YOGRT_DEBUG")) != NULL) {
 			verbosity = (int)atol(p);
 		}
-		debug("Backend implementation is \"%s\".\n",
-		      internal_backend_name());
 		if (p != NULL) {
 			debug("Found YOGRT_DEBUG=%d\n", verbosity);
 		}
@@ -82,8 +92,21 @@ static inline void init_yogrt(void)
 				      " YOGRT_DEFAULT_LIMIT uninitialized\n");
 			}
 		}
-		rank = internal_get_rank();
+
+		if ((backend_handle = dlopen(BACKEND_LIB, RTLD_NOW)) == NULL) {
+			debug("dlopen of backend failed: %s\n", dlerror());
+			return;
+		}
+		
+		backend.init =      dlsym(backend_handle, "internal_init");
+		backend.name =      dlsym(backend_handle, "internal_backend_name");
+		backend.remaining = dlsym(backend_handle, "internal_get_rem_time");
+		backend.rank =      dlsym(backend_handle, "internal_get_rank");
+
+		backend.init(verbosity);
+		rank = backend.rank();
 		debug("Rank is %d\n", rank);
+		debug("Backend implementation is \"%s\".\n", backend.name());
 	}
 }
 
@@ -122,6 +145,9 @@ int yogrt_remaining(void)
 	int rc;
 
 	init_yogrt();
+	if (backend_handle == NULL) {
+		return INT_MAX;
+	}
 
 	if (rank != 0) {
 		debug("This is not task rank 0.  Returning -1.\n");
@@ -129,7 +155,7 @@ int yogrt_remaining(void)
 	}
 
 	if (need_update(now)) {
-		rem = internal_get_rem_time(now, last_update, cached_time_rem);
+		rem = backend.remaining(now, last_update, cached_time_rem);
 		if (rem != -1) {
 			last_update_failed = 0;
 			cached_time_rem = rem;
