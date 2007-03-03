@@ -62,7 +62,6 @@ DESTDIR="$RPM_BUILD_ROOT" make install
 %ifos aix5.3 aix5.2 aix5.1 aix5.0 aix4.3
 if [ -d aix ]; then
 	cp aix/libyogrt* "$RPM_BUILD_ROOT"%{_libdir}/libyogrt
-	rm -f aix
 fi
 %endif
 
