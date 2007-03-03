@@ -69,8 +69,13 @@ fi
 %defattr(-,root,root,-)
 %doc
 %{_includedir}/yogrt.h
+%ifos aix5.3 aix5.2 aix5.1 aix5.0 aix4.3
+%{_libdir}/*.a
+%{_libdir}/libyogrt/*.a
+%else
 %{_libdir}/*
 %{_libdir}/libyogrt/*
+%endif
 %{_mandir}/*/*
 
 %clean
