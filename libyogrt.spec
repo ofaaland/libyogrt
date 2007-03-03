@@ -59,6 +59,7 @@ make
 rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT
 DESTDIR="$RPM_BUILD_ROOT" make install
+mv $RPM_BUILD_ROOT%{_sysconfdir}/yogrt.conf.example $RPM_BUILD_ROOT%{_sysconfdir}/yogrt.conf
 %ifos aix5.3 aix5.2 aix5.1 aix5.0 aix4.3
 if [ -d aix ]; then
 	cp aix/libyogrt* "$RPM_BUILD_ROOT"%{_libdir}/libyogrt
@@ -77,6 +78,7 @@ fi
 %{_libdir}/libyogrt/*
 %endif
 %{_mandir}/*/*
+%config %{_sysconfdir}/yogrt.conf
 
 %clean
 rm -rf $RPM_BUILD_ROOT
