@@ -1,3 +1,8 @@
+
+/*
+ * Based on src/cmd/flux-kvs.c
+ */
+
 #include <stdio.h>
 
 #include <flux/core.h>
