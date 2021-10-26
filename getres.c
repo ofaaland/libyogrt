@@ -89,24 +89,13 @@ long int extract_expiration(char *resource)
         return -1.;
     }
 
-    startjson = json_object_get(execution, "starttime");
-    if (startjson == NULL) {
-        printf("failed to get object startjson\n");
-        return -1.;
-    }
-
     expirjson = json_object_get(execution, "expiration");
     if (expirjson == NULL) {
         printf("failed to get object expirjson\n");
         return -1.;
     }
 
-    starttime = json_number_value(startjson);
     expiration = json_number_value(expirjson);
-
-    printf("root type is %d\n", json_typeof(root));
-    printf("execution type is %d\n", json_typeof(execution));
-    printf("start: %f  expiration: %f\n", starttime, expiration);
 
     return (long int) expiration;
 }
