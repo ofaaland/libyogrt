@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include <jansson.h>
+#include <time.h>
 
 #include <flux/core.h>
 
@@ -104,12 +105,19 @@ int main(int argc, char **argv)
 {
     char *res;
     long int expiration;
+    long int remaining_sec;
 
     res = fetch_resource_string();
     printf("resource is %s\n", res);
 
     expiration = extract_expiration(res);
     printf("expiration is %ld\n", expiration);
+
+    remaining_sec = expiration - time(NULL);
+    printf("remaining seconds is %ld\n", remaining_sec);
+    printf("remaining minutes is %ld\n", remaining_sec / 60);
+    printf("remaining hours   is %ld\n", remaining_sec / (60*60) );
+    printf("remaining days    is %ld\n", remaining_sec / (24*60*60) );
 
     free(res);
 
