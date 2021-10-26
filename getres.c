@@ -69,13 +69,46 @@ char * fetch_resource_string()
 
 long int extract_expiration(char *resource)
 {
-    json_t *json;
+    json_t *root;
+    json_t *execution;
+    json_t *startjson;
+    json_t *expirjson;
     size_t flags = 0;
     json_error_t error = {0};
+    double starttime, expiration;
 
-    json = json_loads(resource, flags, &error);
+    root = json_loads(resource, flags, &error);
+    if (root == NULL) {
+        printf("failed to load json string\n");
+        return -1.;
+    }
 
-    return -1;
+    execution = json_object_get(root, "execution");
+    if (execution == NULL) {
+        printf("failed to get object execution\n");
+        return -1.;
+    }
+
+    startjson = json_object_get(execution, "starttime");
+    if (startjson == NULL) {
+        printf("failed to get object startjson\n");
+        return -1.;
+    }
+
+    expirjson = json_object_get(execution, "expiration");
+    if (expirjson == NULL) {
+        printf("failed to get object expirjson\n");
+        return -1.;
+    }
+
+    starttime = json_number_value(startjson);
+    expiration = json_number_value(expirjson);
+
+    printf("root type is %d\n", json_typeof(root));
+    printf("execution type is %d\n", json_typeof(execution));
+    printf("start: %f  expiration: %f\n", starttime, expiration);
+
+    return (long int) expiration;
 }
 
 int main(int argc, char **argv)
