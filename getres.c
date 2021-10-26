@@ -4,6 +4,7 @@
  */
 
 #include <stdio.h>
+#include <jansson.h>
 
 #include <flux/core.h>
 
@@ -66,12 +67,28 @@ char * fetch_resource_string()
     return ctx.resource;
 }
 
+long int extract_expiration(char *resource)
+{
+    json_t *json;
+    size_t flags = 0;
+    json_error_t error = {0};
+
+    json = json_loads(resource, flags, &error);
+
+    return -1;
+}
+
 int main(int argc, char **argv)
 {
     char *res;
+    long int expiration;
 
     res = fetch_resource_string();
     printf("resource is %s\n", res);
+
+    expiration = extract_expiration(res);
+    printf("expiration is %ld\n", expiration);
+
     free(res);
 
     return(0);
