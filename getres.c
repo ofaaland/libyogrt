@@ -84,19 +84,7 @@ long int extract_expiration(char *resource)
         return -1.;
     }
 
-    execution = json_object_get(root, "execution");
-    if (execution == NULL) {
-        printf("failed to get object execution\n");
-        return -1.;
-    }
-
-    expirjson = json_object_get(execution, "expiration");
-    if (expirjson == NULL) {
-        printf("failed to get object expirjson\n");
-        return -1.;
-    }
-
-    expiration = json_number_value(expirjson);
+    json_unpack(root, "{s:{s?F}}", "execution", "expiration", &expiration);
 
     return (long int) expiration;
 }
