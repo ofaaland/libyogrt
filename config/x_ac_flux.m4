@@ -5,67 +5,89 @@
 #    X_AC_FLUX()
 #
 #  DESCRIPTION:
-#    Check the usual suspects for a FLUX installation,
+#    Check the usual suspects for an flux installation,
 #    updating CPPFLAGS and LDFLAGS as necessary.
 #
 #  WARNINGS:
 #    This macro must be placed after AC_PROG_CC and before AC_PROG_LIBTOOL.
 ##*****************************************************************************
 
-##
-## I don't understand some of what the other ac checks support.
-## This one will look for flux headers and libraries and define
-##   FLUX_CPPFLAGS
-##   FLUX_LDFLAGS
-##   FLUX_LIBADD
-##
-## configure will allow --with-flux and take the following arguments
-##    no     - do not look for flux, do not define above macros
-##    check  - look for flux in default locations, OK if not found
-##    yes    - look for flux in default locations, failure if not found
-
-#
-# libjansson is used to parse the json flux uses to describe allocations
-#
-
 AC_DEFUN([X_AC_FLUX], [
+
+  # Check for FLUX header file in the default location.
+  #AC_CHECK_HEADERS([flux/flux.h])
+
+  _x_ac_flux_dirs="/opt/freeware"
+  _x_ac_flux_libs="lib64 lib"
 
   AC_ARG_WITH(
     [flux],
-    AS_HELP_STRING(--with-flux=check/yes/no),
-    [],
-    [with_flux=check])
+    AS_HELP_STRING(--with-flux=PATH,Specify path to flux installation),
+    [_x_ac_flux_dirs="$withval"
+     with_flux=yes],
+    [with_flux=no])
 
-  args_ok="no"
-  AS_IF([test x$with_flux = xno],[args_ok="yes"],
-        [test x$with_flux = xyes],[args_ok="yes"],
-        [test x$with_flux = xcheck],[args_ok="yes"]
-  )
-  AS_IF([test x$args_ok = xno],[
-    AC_MSG_ERROR([--with-flux argument must be yes, no, or check])
-  ])
+  _backup_libs="$LIBS"
+  if test "$with_flux" = no; then
+    # Check for FLUX library in the default location.
+    AC_CHECK_LIB([flux], [flux_get_rem_time])
+  fi
+  LIBS="$_backup_libs"
 
-  AS_IF([test x$with_flux != xno],[
-    AC_SEARCH_LIBS([flux_open], [flux-core], [found_flux=yes], [found_flux=no])
+  if test "$ac_cv_lib_flux_flux_get_rem_time" != yes; then
+    AC_CACHE_CHECK(
+      [for flux installation],
+      [x_ac_cv_flux_dir],
+      [
+        for d in $_x_ac_flux_dirs; do
+          test -d "$d" || continue
+          test -d "$d/include" || continue
+          test -d "$d/include/flux" || continue
+          test -f "$d/include/flux/flux.h" || continue
+          for bit in $_x_ac_flux_libs; do
+            test -d "$d/$bit" || continue
 
-    if test "$found_flux" = yes; then
-      FLUX_CPPFLAGS=""
-      FLUX_LDFLAGS=""
-      FLUX_LIBADD="-lflux-core -ljansson"
+            _x_ac_flux_libs_save="$LIBS"
+            LIBS="-L$d/$bit -lflux -lpthread -lcrypto $LIBS"
+            AC_LINK_IFELSE(
+              [AC_LANG_PROGRAM([],[flux_get_rem_time(0);])],
+              [AS_VAR_SET([x_ac_cv_flux_dir], [$d])
+               AS_VAR_SET([x_ac_cv_flux_libdir], [$d/$bit])]
+            )
+            LIBS="$_x_ac_flux_libs_save"
+            test -n "$x_ac_cv_flux_dir" && break
+          done
+          test -n "$x_ac_cv_flux_dir" && break
+        done
+    ])
+  fi
 
-      AC_SUBST(FLUX_LIBADD)
-      AC_SUBST(FLUX_CPPFLAGS)
-      AC_SUBST(FLUX_LDFLAGS)
+  if test "$with_flux" = no \
+     && test "$ac_cv_lib_flux_flux_get_rem_time" = yes; then
+    FLUX_CPPFLAGS=""
+    FLUX_LDFLAGS=""
+    FLUX_LIBADD="-lflux"
+  elif test -n "$x_ac_cv_flux_dir"; then
+    FLUX_CPPFLAGS="-I$x_ac_cv_flux_dir/include"
+    FLUX_LDFLAGS="-L$x_ac_cv_flux_libdir -lpthread -lcrypto"
+    FLUX_LIBADD="-lflux"
+  else
+    if test "$with_flux" = yes; then
+      AC_MSG_ERROR([flux is not in specified location!])
     else
-      if test "$with_flux" = yes; then
-        AC_MSG_ERROR([unable to locate flux installation. Failing build.])
-      else
-        AC_MSG_WARN([unable to locate flux installation])
-      fi
+      AC_MSG_WARN([unable to locate flux installation])
     fi
- 
-  ])
+  fi
 
+  AC_SUBST(FLUX_CPPFLAGS)
+  AC_SUBST(FLUX_LDFLAGS)
+  AC_SUBST(FLUX_LIBADD)
 
-  AM_CONDITIONAL(WITH_FLUX, test "x$found_flux" = xyes)
+  if test -n "$x_ac_cv_flux_dir" || test "$ac_cv_lib_flux_flux_get_rem_time" = yes; then
+    AS_VAR_SET([flux_available], [yes])
+  else
+    AS_VAR_SET([flux_available], [no])
+  fi
+
+  AM_CONDITIONAL([WITH_FLUX], [test "$flux_available" = yes])
 ])
