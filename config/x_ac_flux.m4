@@ -27,20 +27,21 @@ AC_DEFUN([X_AC_FLUX], [
   AS_IF([test x$with_flux != xno],[
     # various libs needed to call lsb_ functions
     #flux_extra_libs="-lbat -lflux -lrt -lnsl"
-    flux_extra_libs="-lflux -lrt -lnsl"
+    #flux_extra_libs="-lflux -lrt -lnsl"
+    flux_extra_libs=""
 
     found_flux=no
     # Check for FLUX library in the default location.
     AS_IF([test x$with_flux = xyes -o x$with_flux = xcheck],[
-      AC_SEARCH_LIBS([lsb_init], [bat], [found_flux=yes], [found_flux=no], [$flux_extra_libs])
+      AC_SEARCH_LIBS([flux_close], [flux-core], [found_flux=yes], [found_flux=no], [$flux_extra_libs])
     ])
 
     AS_IF([test x$found_flux = xno],[
       AC_CACHE_CHECK([for FLUX include directory],
                      [x_ac_cv_flux_includedir],
                      [AS_IF([test -z "$FLUX_INCLUDEDIR"],
-                            [FLUX_INCLUDEDIR=`grep FLUX_INCLUDEDIR= $FLUX_ENVDIR/flux.conf 2>/dev/null| cut -d= -f2`])
-                      AS_IF([test -f "$FLUX_INCLUDEDIR/flux/lsbatch.h"],
+                            [FLUX_INCLUDEDIR="/usr/include"])
+                      AS_IF([test -f "$FLUX_INCLUDEDIR/flux/core.h"],
                             [x_ac_cv_flux_includedir="$FLUX_INCLUDEDIR"],
                             [x_ac_cv_flux_includedir=no])
                      ])
@@ -48,9 +49,9 @@ AC_DEFUN([X_AC_FLUX], [
                      [x_ac_cv_flux_libdir],
                      [x_ac_cv_flux_libdir=no
                       AS_IF([test -d "$FLUX_LIBDIR"],[
-                        LIBS="-L$FLUX_LIBDIR -lbat $flux_extra_libs $LIBS"
+                        LIBS="-L$FLUX_LIBDIR -lflux-core $flux_extra_libs $LIBS"
                         AC_LINK_IFELSE(
-                          [AC_LANG_PROGRAM([lsb_init(NULL);])],
+                          [AC_LANG_PROGRAM([flux_close(NULL);])],
                           [x_ac_cv_flux_libdir=$FLUX_LIBDIR]
                         )
                         LIBS="$_x_ac_flux_libs_save"
@@ -60,7 +61,7 @@ AC_DEFUN([X_AC_FLUX], [
              found_flux=yes
              FLUX_CPPFLAGS="-I$FLUX_INCLUDEDIR"
              FLUX_LDFLAGS="-L$FLUX_LIBDIR"
-             FLUX_LIBADD="-lbat $flux_extra_libs"
+             FLUX_LIBADD="-lflux-core $flux_extra_libs"
             ],[
              found_flux=no
              FLUX_CPPFLAGS=""
