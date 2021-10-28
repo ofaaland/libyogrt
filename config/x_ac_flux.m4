@@ -5,7 +5,7 @@
 #    X_AC_FLUX()
 #
 #  DESCRIPTION:
-#    Check the usual suspects for an flux installation,
+#    Check the usual suspects for a FLUX installation,
 #    updating CPPFLAGS and LDFLAGS as necessary.
 #
 #  WARNINGS:
@@ -14,86 +14,72 @@
 
 AC_DEFUN([X_AC_FLUX], [
 
-  # Check for FLUX header file in the default location.
-  #AC_CHECK_HEADERS([flux/flux.h])
-
-  _x_ac_flux_dirs="/usr"
-  _x_ac_flux_libs="lib64 lib"
+  AC_ARG_VAR([FLUX_LIBDIR], [Directory containing FLUX libraries])
+  AC_ARG_VAR([FLUX_INCLUDEDIR], [Directory containing FLUX header files])
+  AC_ARG_VAR([FLUX_ENVDIR], [Directory containing FLUX configuration files])
 
   AC_ARG_WITH(
     [flux],
     AS_HELP_STRING(--with-flux=PATH,Specify path to flux installation),
-    [_x_ac_flux_dirs="$withval"
-     with_flux=yes],
-    [with_flux=no])
+    [],
+    [with_flux=check])
 
-  _backup_libs="$LIBS"
-  if test "$with_flux" = no; then
+  AS_IF([test x$with_flux != xno],[
+    # various libs needed to call lsb_ functions
+    #flux_extra_libs="-lbat -lflux -lrt -lnsl"
+    flux_extra_libs="-lflux -lrt -lnsl"
+
+    found_flux=no
     # Check for FLUX library in the default location.
-    AC_CHECK_LIB([flux-core], [flux_open])
-  fi
-  LIBS="$_backup_libs"
-
-  if test "$ac_cv_lib_flux_flux_open" != yes; then
-    AC_CACHE_CHECK(
-      [for flux installation],
-      [x_ac_cv_flux_dir],
-      [
-        incname="core.h"
-        libname="flux-core"
-
-        for d in $_x_ac_flux_dirs; do
-          test -d "$d" || continue
-          test -d "$d/include" || continue
-          test -d "$d/include/flux" || continue
-          test -f "$d/include/flux/$incname" || continue
-          for bit in $_x_ac_flux_libs; do
-            test -d "$d/$bit" || continue
-
-            _x_ac_flux_libs_save="$LIBS"
-            _x_ac_flux_cpath_save="$C_INCLUDE_PATH"
-            LIBS="-L$d/$bit -lflux-core $LIBS"
-            C_INCLUDE_PATH="$C_INCLUDE_PATH:$d/include/"
-            AC_LINK_IFELSE(
-              [AC_LANG_PROGRAM([#include <flux/core.h>],[flux_open(0,0);])],
-              [AS_VAR_SET([x_ac_cv_flux_dir], [$d])
-               AS_VAR_SET([x_ac_cv_flux_libdir], [$d/$bit])]
-            )
-            LIBS="$_x_ac_flux_libs_save"
-            C_INCLUDE_PATH="$_x_ac_flux_cpath_save"
-            test -n "$x_ac_cv_flux_dir" && break
-          done
-          test -n "$x_ac_cv_flux_dir" && break
-        done
+    AS_IF([test x$with_flux = xyes -o x$with_flux = xcheck],[
+      AC_SEARCH_LIBS([lsb_init], [bat], [found_flux=yes], [found_flux=no], [$flux_extra_libs])
     ])
-  fi
 
-  if test "$with_flux" = no \
-     && test "$ac_cv_lib_flux_flux_open" = yes; then
-    FLUX_CPPFLAGS=""
-    FLUX_LDFLAGS=""
-    FLUX_LIBADD="-lflux-core"
-  elif test -n "$x_ac_cv_flux_dir"; then
-    FLUX_CPPFLAGS="-I$x_ac_cv_flux_dir/include"
-    FLUX_LDFLAGS="-L$x_ac_cv_flux_libdir"
-    FLUX_LIBADD="-lflux-core"
-  else
-    if test "$with_flux" = yes; then
-      AC_MSG_ERROR([flux is not in specified location!])
-    else
-      AC_MSG_WARN([unable to locate flux installation])
-    fi
-  fi
+    AS_IF([test x$found_flux = xno],[
+      AC_CACHE_CHECK([for FLUX include directory],
+                     [x_ac_cv_flux_includedir],
+                     [AS_IF([test -z "$FLUX_INCLUDEDIR"],
+                            [FLUX_INCLUDEDIR=`grep FLUX_INCLUDEDIR= $FLUX_ENVDIR/flux.conf 2>/dev/null| cut -d= -f2`])
+                      AS_IF([test -f "$FLUX_INCLUDEDIR/flux/lsbatch.h"],
+                            [x_ac_cv_flux_includedir="$FLUX_INCLUDEDIR"],
+                            [x_ac_cv_flux_includedir=no])
+                     ])
+      AC_CACHE_CHECK([for FLUX library directory],
+                     [x_ac_cv_flux_libdir],
+                     [x_ac_cv_flux_libdir=no
+                      AS_IF([test -d "$FLUX_LIBDIR"],[
+                        LIBS="-L$FLUX_LIBDIR -lbat $flux_extra_libs $LIBS"
+                        AC_LINK_IFELSE(
+                          [AC_LANG_PROGRAM([lsb_init(NULL);])],
+                          [x_ac_cv_flux_libdir=$FLUX_LIBDIR]
+                        )
+                        LIBS="$_x_ac_flux_libs_save"
+                      ])
+                     ])
+      AS_IF([test x$x_ac_cv_flux_includedir != xno -a x$x_ac_cv_flux_libdir != xno],[
+             found_flux=yes
+             FLUX_CPPFLAGS="-I$FLUX_INCLUDEDIR"
+             FLUX_LDFLAGS="-L$FLUX_LIBDIR"
+             FLUX_LIBADD="-lbat $flux_extra_libs"
+            ],[
+             found_flux=no
+             FLUX_CPPFLAGS=""
+             FLUX_LDFLAGS=""
+             FLUX_LIBADD=""
+            ])
+    ])
 
+    AS_IF([test x$found_flux != xyes],[
+      AS_IF([test x$with_flux = xyes],
+        [AC_MSG_ERROR([FLUX not found!])],
+        [AC_MSG_WARN([not building support for FLUX])]
+      )
+    ])
+  ])
+
+  AC_SUBST(FLUX_LIBADD)
   AC_SUBST(FLUX_CPPFLAGS)
   AC_SUBST(FLUX_LDFLAGS)
-  AC_SUBST(FLUX_LIBADD)
 
-  if test -n "$x_ac_cv_flux_dir" || test "$ac_cv_lib_flux_flux_open" = yes; then
-    AS_VAR_SET([flux_available], [yes])
-  else
-    AS_VAR_SET([flux_available], [no])
-  fi
-
-  AM_CONDITIONAL([WITH_FLUX], [test "$flux_available" = yes])
+  AM_CONDITIONAL(WITH_FLUX, test "x$found_flux" = xyes)
 ])
