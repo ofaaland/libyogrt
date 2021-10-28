@@ -17,7 +17,7 @@ AC_DEFUN([X_AC_FLUX], [
   # Check for FLUX header file in the default location.
   #AC_CHECK_HEADERS([flux/flux.h])
 
-  _x_ac_flux_dirs="/opt/freeware"
+  _x_ac_flux_dirs="/usr"
   _x_ac_flux_libs="lib64 lib"
 
   AC_ARG_WITH(
@@ -30,7 +30,7 @@ AC_DEFUN([X_AC_FLUX], [
   _backup_libs="$LIBS"
   if test "$with_flux" = no; then
     # Check for FLUX library in the default location.
-    AC_CHECK_LIB([flux], [flux_get_rem_time])
+    AC_CHECK_LIB([flux-core], [flux_open])
   fi
   LIBS="$_backup_libs"
 
@@ -39,18 +39,21 @@ AC_DEFUN([X_AC_FLUX], [
       [for flux installation],
       [x_ac_cv_flux_dir],
       [
+        incname="core.h"
+        libname="flux-core"
+
         for d in $_x_ac_flux_dirs; do
           test -d "$d" || continue
           test -d "$d/include" || continue
           test -d "$d/include/flux" || continue
-          test -f "$d/include/flux/flux.h" || continue
+          test -f "$d/include/flux/$incname" || continue
           for bit in $_x_ac_flux_libs; do
             test -d "$d/$bit" || continue
 
             _x_ac_flux_libs_save="$LIBS"
-            LIBS="-L$d/$bit -lflux -lpthread -lcrypto $LIBS"
+            LIBS="-L$d/$bit -lflux-core $LIBS"
             AC_LINK_IFELSE(
-              [AC_LANG_PROGRAM([],[flux_get_rem_time(0);])],
+              [AC_LANG_PROGRAM([],[flux_open(NULL,0);])],
               [AS_VAR_SET([x_ac_cv_flux_dir], [$d])
                AS_VAR_SET([x_ac_cv_flux_libdir], [$d/$bit])]
             )
