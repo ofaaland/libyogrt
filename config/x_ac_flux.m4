@@ -14,9 +14,12 @@
 
 AC_DEFUN([X_AC_FLUX], [
 
-  AC_ARG_VAR([FLUX_LIBDIR], [Directory containing FLUX libraries])
-  AC_ARG_VAR([FLUX_INCLUDEDIR], [Directory containing FLUX header files])
-  AC_ARG_VAR([FLUX_ENVDIR], [Directory containing FLUX configuration files])
+#  AC_ARG_VAR([FLUX_LIBDIR], [Directory containing FLUX libraries])
+#  AC_ARG_VAR([FLUX_INCLUDEDIR], [Directory containing FLUX header files])
+
+  AC_ARG_VAR([FLUX_LIBADD], [FLUX libraries to add])
+  AC_ARG_VAR([FLUX_LDFLAGS], [Set FLUX library search paths])
+  AC_ARG_VAR([FLUX_CPPFLAGS], [Set FLUX FLUX header files search paths])
 
   AC_ARG_WITH(
     [flux],
