@@ -61,10 +61,11 @@ AC_DEFUN([X_AC_FLUX], [
       fi
     fi
  
-    AC_SUBST(FLUX_LIBADD)
-    AC_SUBST(FLUX_CPPFLAGS)
-    AC_SUBST(FLUX_LDFLAGS)
- 
-    AM_CONDITIONAL(WITH_FLUX, test "x$found_flux" = xyes)
   ])
+
+  AC_SUBST(FLUX_LIBADD)
+  AC_SUBST(FLUX_CPPFLAGS)
+  AC_SUBST(FLUX_LDFLAGS)
+
+  AM_CONDITIONAL(WITH_FLUX, test "x$found_flux" = xyes)
 ])
