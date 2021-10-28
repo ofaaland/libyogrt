@@ -36,14 +36,18 @@ AC_DEFUN([X_AC_FLUX], [
       AC_SEARCH_LIBS([flux_close], [flux-core], [found_flux=yes], [found_flux=no], [$flux_extra_libs])
     ])
 
+    AC_MSG_WARN([after library check found_flux=$found_flux])
     AS_IF([test x$found_flux = xno],[
       AC_CACHE_CHECK([for FLUX include directory],
                      [x_ac_cv_flux_includedir],
                      [AS_IF([test -z "$FLUX_INCLUDEDIR"],
-                            [FLUX_INCLUDEDIR="/usr/include"])
+                            [FLUX_INCLUDEDIR="/usr/include";
+                              AC_MSG_WARN([FLUX_INCLUDEDIR was size zero, now is $FLUX_INCLUDEDIR])
+                            ])
                       AS_IF([test -f "$FLUX_INCLUDEDIR/flux/core.h"],
                             [x_ac_cv_flux_includedir="$FLUX_INCLUDEDIR"],
                             [x_ac_cv_flux_includedir=no])
+                      AC_MSG_WARN([and now x_ac_cv_flux_includedir is $x_ac_cv_flux_includedir])
                      ])
       AC_CACHE_CHECK([for FLUX library directory],
                      [x_ac_cv_flux_libdir],
