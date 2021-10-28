@@ -69,11 +69,11 @@ AC_DEFUN([X_AC_FLUX], [
      && test "$ac_cv_lib_flux_flux_open" = yes; then
     FLUX_CPPFLAGS=""
     FLUX_LDFLAGS=""
-    FLUX_LIBADD="-lflux"
+    FLUX_LIBADD="-lflux-core"
   elif test -n "$x_ac_cv_flux_dir"; then
     FLUX_CPPFLAGS="-I$x_ac_cv_flux_dir/include"
-    FLUX_LDFLAGS="-L$x_ac_cv_flux_libdir -lpthread -lcrypto"
-    FLUX_LIBADD="-lflux"
+    FLUX_LDFLAGS="-L$x_ac_cv_flux_libdir"
+    FLUX_LIBADD="-lflux-core"
   else
     if test "$with_flux" = yes; then
       AC_MSG_ERROR([flux is not in specified location!])
