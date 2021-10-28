@@ -51,13 +51,16 @@ AC_DEFUN([X_AC_FLUX], [
             test -d "$d/$bit" || continue
 
             _x_ac_flux_libs_save="$LIBS"
+            _x_ac_flux_cpath_save="$CPATH"
             LIBS="-L$d/$bit -lflux-core $LIBS"
+            CPATH="$CPATH:$d/include/"
             AC_LINK_IFELSE(
               [AC_LANG_PROGRAM([#include <flux/core.h>],[flux_open(0,0);])],
               [AS_VAR_SET([x_ac_cv_flux_dir], [$d])
                AS_VAR_SET([x_ac_cv_flux_libdir], [$d/$bit])]
             )
             LIBS="$_x_ac_flux_libs_save"
+            CPATH="$_x_ac_flux_cpath_save"
             test -n "$x_ac_cv_flux_dir" && break
           done
           test -n "$x_ac_cv_flux_dir" && break
