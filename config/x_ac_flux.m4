@@ -34,7 +34,7 @@ AC_DEFUN([X_AC_FLUX], [
   fi
   LIBS="$_backup_libs"
 
-  if test "$ac_cv_lib_flux_flux_get_rem_time" != yes; then
+  if test "$ac_cv_lib_flux_flux_open" != yes; then
     AC_CACHE_CHECK(
       [for flux installation],
       [x_ac_cv_flux_dir],
@@ -66,7 +66,7 @@ AC_DEFUN([X_AC_FLUX], [
   fi
 
   if test "$with_flux" = no \
-     && test "$ac_cv_lib_flux_flux_get_rem_time" = yes; then
+     && test "$ac_cv_lib_flux_flux_open" = yes; then
     FLUX_CPPFLAGS=""
     FLUX_LDFLAGS=""
     FLUX_LIBADD="-lflux"
@@ -86,7 +86,7 @@ AC_DEFUN([X_AC_FLUX], [
   AC_SUBST(FLUX_LDFLAGS)
   AC_SUBST(FLUX_LIBADD)
 
-  if test -n "$x_ac_cv_flux_dir" || test "$ac_cv_lib_flux_flux_get_rem_time" = yes; then
+  if test -n "$x_ac_cv_flux_dir" || test "$ac_cv_lib_flux_flux_open" = yes; then
     AS_VAR_SET([flux_available], [yes])
   else
     AS_VAR_SET([flux_available], [no])
