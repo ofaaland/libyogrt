@@ -52,6 +52,10 @@ AC_DEFUN([X_AC_FLUX], [
       AC_CACHE_CHECK([for FLUX library directory],
                      [x_ac_cv_flux_libdir],
                      [x_ac_cv_flux_libdir=no
+                      AS_IF([test -z "$FLUX_LIBDIR"],
+                            [FLUX_LIBDIR="$with_flux/lib64/"
+                              AC_MSG_WARN([FLUX_LIBDIR was size zero, now is $FLUX_LIBDIR])
+                            ])
                       AS_IF([test -d "$FLUX_LIBDIR"],[
                         LIBS="-L$FLUX_LIBDIR -lflux-core $flux_extra_libs $LIBS"
                         AC_LINK_IFELSE(
