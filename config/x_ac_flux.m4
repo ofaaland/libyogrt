@@ -87,9 +87,19 @@ AC_DEFUN([X_AC_FLUX], [
     ])
   ])
 
+	AC_MSG_WARN([FLUX_LIBADD is $FLUX_LIBADD])
+	AC_MSG_WARN([FLUX_CPPFLAGS is $FLUX_CPPFLAGS])
+	AC_MSG_WARN([FLUX_LDFLAGS is $FLUX_LDFLAGS])
+
   AC_SUBST(FLUX_LIBADD)
   AC_SUBST(FLUX_CPPFLAGS)
   AC_SUBST(FLUX_LDFLAGS)
+
+#S["FLUX_LIBADD"]="-lflux-core "
+#S["FLUX_CPPFLAGS"]="-I/tmp/olaf/usr//include/"
+#S["FLUX_LDFLAGS"]="-L/tmp/olaf/usr//lib64/"
+#S["FLUX_INCLUDEDIR"]="/tmp/olaf/usr//include/"
+#S["FLUX_LIBDIR"]="/tmp/olaf/usr//lib64/"
 
   AM_CONDITIONAL(WITH_FLUX, test "x$found_flux" = xyes)
 ])
