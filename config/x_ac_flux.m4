@@ -41,7 +41,6 @@ AC_DEFUN([X_AC_FLUX], [
         [test x$with_flux = xyes],[args_ok="yes"],
         [test x$with_flux = xcheck],[args_ok="yes"]
   )
-
   AS_IF([test x$args_ok = xno],[
     AC_MSG_ERROR([--with-flux argument must be yes, no, or check])
   ])
@@ -53,6 +52,10 @@ AC_DEFUN([X_AC_FLUX], [
       FLUX_CPPFLAGS=""
       FLUX_LDFLAGS=""
       FLUX_LIBADD="-lflux-core -ljansson"
+
+      AC_SUBST(FLUX_LIBADD)
+      AC_SUBST(FLUX_CPPFLAGS)
+      AC_SUBST(FLUX_LDFLAGS)
     else
       if test "$with_flux" = yes; then
         AC_MSG_ERROR([unable to locate flux installation. Failing build.])
@@ -63,9 +66,6 @@ AC_DEFUN([X_AC_FLUX], [
  
   ])
 
-  AC_SUBST(FLUX_LIBADD)
-  AC_SUBST(FLUX_CPPFLAGS)
-  AC_SUBST(FLUX_LDFLAGS)
 
   AM_CONDITIONAL(WITH_FLUX, test "x$found_flux" = xyes)
 ])
