@@ -20,9 +20,6 @@ AC_DEFUN([X_AC_FLUX], [
     [with_flux=check])
 
   AS_IF([test x$with_flux != xno],[
-    # various libs needed to call lsb_ functions
-    #flux_extra_libs="-lbat -lflux -lrt -lnsl"
-    #flux_extra_libs="-lflux -lrt -lnsl"
     flux_extra_libs=""
 
     found_flux=no
