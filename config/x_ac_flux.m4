@@ -26,8 +26,8 @@ AC_DEFUN([X_AC_FLUX], [
 
   AS_IF([test x$with_flux != xno],[
     flux_extra_libs=""
-
     found_flux=no
+
     # Check for FLUX library in the default location.
     AS_IF([test x$with_flux = xyes -o x$with_flux = xcheck],[
       AC_SEARCH_LIBS([flux_close], [flux-core], [found_flux=yes], [found_flux=no], [$flux_extra_libs])
