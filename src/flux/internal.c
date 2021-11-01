@@ -36,7 +36,6 @@
 
 int verbosity = 0;
 int jobid_valid = 0;
-LS_LONG_INT jobid;
 
 int internal_init(int verb)
 {
