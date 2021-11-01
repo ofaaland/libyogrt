@@ -24,6 +24,7 @@ AC_DEFUN([X_AC_FLUX], [
     [],
     [with_flux=check])
 
+  AC_DEFINE([HAVE_LIBFLUX], 1, [Define to 1 if you have the `flux-core' library (-lflux-core).])
   AS_IF([test x$with_flux != xno],[
     flux_extra_libs=""
     found_flux=no
@@ -79,7 +80,7 @@ AC_DEFUN([X_AC_FLUX], [
         [AC_MSG_ERROR([FLUX not found!])],
         [AC_MSG_WARN([not building support for FLUX])])
     ], [
-             FLUX_LIBADD="-lflux-core $flux_extra_libs"
+        FLUX_LIBADD="-lflux-core $flux_extra_libs"
     ])
   ])
 
