@@ -67,20 +67,19 @@ AC_DEFUN([X_AC_FLUX], [
              found_flux=yes
              FLUX_CPPFLAGS="-I$FLUX_INCLUDEDIR"
              FLUX_LDFLAGS="-L$FLUX_LIBDIR"
-             FLUX_LIBADD="-lflux-core $flux_extra_libs"
             ],[
              found_flux=no
              FLUX_CPPFLAGS=""
              FLUX_LDFLAGS=""
-             FLUX_LIBADD=""
             ])
     ])
 
     AS_IF([test x$found_flux != xyes],[
       AS_IF([test x$with_flux = xyes],
         [AC_MSG_ERROR([FLUX not found!])],
-        [AC_MSG_WARN([not building support for FLUX])]
-      )
+        [AC_MSG_WARN([not building support for FLUX])])
+    ], [
+             FLUX_LIBADD="-lflux-core $flux_extra_libs"
     ])
   ])
 
