@@ -34,7 +34,7 @@ AC_DEFUN([X_AC_FLUX], [
     ])
 
     AC_MSG_WARN([after library check found_flux=$found_flux])
-    AS_IF([test x$found_flux = xno],[
+    AS_IF([test x$found_flux = xno -a x$with_flux != xyes -a x$with_flux != xcheck ],[
       AC_CACHE_CHECK([for FLUX include directory],
                      [x_ac_cv_flux_includedir],
                      [AS_IF([test -z "$FLUX_INCLUDEDIR"],
