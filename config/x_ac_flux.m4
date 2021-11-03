@@ -24,10 +24,11 @@ AC_DEFUN([X_AC_FLUX], [
     [],
     [with_flux=check])
 
-  AC_DEFINE([HAVE_LIBFLUX], 1, [Define to 1 if you have the `flux-core' library (-lflux-core).])
   AS_IF([test x$with_flux != xno],[
     flux_extra_libs=""
     found_flux=no
+
+    AC_DEFINE([HAVE_LIBFLUX], 1, [Define to 1 if you have the `flux-core' library (-lflux-core).])
 
     # Check for FLUX library in the default location.
     AS_IF([test x$with_flux = xyes -o x$with_flux = xcheck],[
