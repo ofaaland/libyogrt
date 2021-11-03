@@ -15,7 +15,7 @@
 # --with-flux=no	no test for flux, WITH_FLUX undefined
 # --with-flux=check	look in default location; warn on fail
 # --with-flux=yes	look in default location; error on fail
-# --with-flux=<path>	look in default location; if not found look under <path>; error on fail
+# --with-flux=<path>	look under <path>; warn on fail
 
 AC_DEFUN([X_AC_FLUX], [
   AC_ARG_WITH(
