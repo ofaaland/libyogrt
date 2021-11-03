@@ -28,8 +28,6 @@ AC_DEFUN([X_AC_FLUX], [
     flux_extra_libs=""
     found_flux=no
 
-    AC_DEFINE([HAVE_LIBFLUX], 1, [Define to 1 if you have the `flux-core' library (-lflux-core).])
-
     # Check for FLUX library in the default location.
     AS_IF([test x$with_flux = xyes -o x$with_flux = xcheck],[
       AC_SEARCH_LIBS([flux_close], [flux-core], [found_flux=yes], [found_flux=no], [$flux_extra_libs])
@@ -75,12 +73,13 @@ AC_DEFUN([X_AC_FLUX], [
         [AC_MSG_WARN([not building support for FLUX])])
     ], [
         FLUX_LIBADD="-lflux-core $flux_extra_libs"
+        AC_SUBST(FLUX_LIBADD)
+        AC_SUBST(FLUX_CPPFLAGS)
+        AC_SUBST(FLUX_LDFLAGS)
+        AC_DEFINE([HAVE_LIBFLUX], 1, [Define to 1 if you have the `flux-core' library (-lflux-core).])
     ])
   ])
 
-  AC_SUBST(FLUX_LIBADD)
-  AC_SUBST(FLUX_CPPFLAGS)
-  AC_SUBST(FLUX_LDFLAGS)
 
   AM_CONDITIONAL(WITH_FLUX, test "x$found_flux" = xyes)
 ])
