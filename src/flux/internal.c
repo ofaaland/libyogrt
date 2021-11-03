@@ -23,6 +23,14 @@
 
 
 #include <stdio.h>
+#include <jansson.h>
+#include <time.h>
+#include <limits.h>
+#include <flux/core.h>
+
+struct lookup_ctx {
+    char *resource;
+};
 
 #include "internal_yogrt.h"
 
@@ -33,7 +41,14 @@ int internal_init(int verb)
 {
 	verbosity = verb;
 
-        return 0;
+        if (getenv("FLUX_JOBID") != NULL) {
+		jobid_valid = 1;
+                return 1;
+        } else {
+                debug("ERROR: FLUX_JOBID is not set."
+                      " Remaining time will be a bogus value.\n");
+                return 0;
+        }
 }
 
 char *internal_backend_name(void)
@@ -41,9 +56,114 @@ char *internal_backend_name(void)
 	return "FLUX";
 }
 
+void lookup_continuation (flux_future_t *f, void *arg)
+{
+    struct lookup_ctx *ctx = arg;
+    const char *key = flux_kvs_lookup_get_key (f);
+    const char *value;
+
+    if (flux_kvs_lookup_get (f, &value) < 0) {
+        perror("flux_kvs_lookup_get failed");
+        return;
+    }
+
+    ctx->resource = strdup(value);
+
+    flux_future_destroy (f);
+}
+
+char * fetch_resource_string()
+{
+    flux_t *h;
+    flux_future_t *f;
+    flux_reactor_t *r;
+    char *ns = NULL;
+    struct lookup_ctx ctx = {0};
+    const char *key = "resource.R";
+
+    if (!(h = flux_open(NULL, 0))) {
+        perror("flux_open failed");
+        exit(1);
+    }
+
+    if (!(f = flux_kvs_lookup(h, ns, 0, key))) {
+        perror("flux_kvs_lookup failed");
+        exit(2);
+    }
+
+    if (flux_future_then (f, -1., lookup_continuation, &ctx) < 0) {
+        perror("flux_future_then failed");
+        exit(3);
+    }
+
+    if (!(r = flux_get_reactor(h))) {
+        perror ("flux_get_reactor failed");
+        exit(4);
+    }
+
+    if (flux_reactor_run(r, 0) < 0) {
+        perror ("flux_reactor_run failed");
+        exit(5);
+    }
+
+    flux_close(h);
+
+    return ctx.resource;
+}
+
+long int extract_expiration(char *resource)
+{
+    json_t *root;
+    json_t *execution;
+    json_t *startjson;
+    json_t *expirjson;
+    size_t flags = 0;
+    json_error_t error = {0};
+    double starttime, expiration;
+
+    root = json_loads(resource, flags, &error);
+    if (root == NULL) {
+        printf("failed to load json string\n");
+        return -1.;
+    }
+
+    json_unpack(root, "{s:{s?F}}", "execution", "expiration", &expiration);
+
+    return (long int) expiration;
+}
+
 int internal_get_rem_time(time_t now, time_t last_update, int cached)
 {
-        int secs_left = MAX_INT;
+	char *res = NULL;
+	long int expiration;
+	long int remaining_sec;
+        int secs_left = 0;
+
+	/* only do this lookup with a valid jobid */
+	if (! jobid_valid) {
+		error("FLUX: No valid jobid to lookup!\n");
+		return -1;
+	}
+
+	res = fetch_resource_string();
+	debug2("flux resource is %s\n", res);
+
+	expiration = extract_expiration(res);
+	debug2("flux expiration is %ld\n", expiration);
+
+	remaining_sec = expiration - time(NULL);
+	printf("flux remaining seconds is %ld\n", remaining_sec);
+
+	if (remaining_sec >= INT_MAX) {
+		debug2("flux remaining_sec (%ld) >= INT_MAX, truncating\n",
+		    remaining_sec);
+		remaining_sec = INT_MAX - 1;
+	}
+
+	secs_left = remaining_sec;
+
+	if (res)
+		free(res);
 
 	debug2("FLUX reports remaining time of %d sec.\n", secs_left);
 	return secs_left;
