@@ -12,7 +12,7 @@
 #    This macro must be placed after AC_PROG_CC and before AC_PROG_LIBTOOL.
 ##*****************************************************************************
 
-# --with-flux=no	no test for flux, HAVE_LIBFLUX undefined
+# --with-flux=no	no test for flux
 # --with-flux=check	look in default location
 # --with-flux		look in default location; error on fail
 # --with-flux=yes	look in default location; error on fail
