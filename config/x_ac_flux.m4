@@ -34,25 +34,21 @@ AC_DEFUN([X_AC_FLUX], [
       AC_SEARCH_LIBS([flux_close], [flux-core], [found_flux=yes], [found_flux=no], [$flux_extra_libs])
     ])
 
-    AC_MSG_WARN([after library check found_flux=$found_flux])
     AS_IF([test x$found_flux = xno -a x$with_flux != xyes -a x$with_flux != xcheck ],[
       AC_CACHE_CHECK([for FLUX include directory],
                      [x_ac_cv_flux_includedir],
                      [AS_IF([test -z "$FLUX_INCLUDEDIR"],
                             [FLUX_INCLUDEDIR="$with_flux/include/"
-                              AC_MSG_WARN([FLUX_INCLUDEDIR was size zero, now is $FLUX_INCLUDEDIR])
                             ])
                       AS_IF([test -f "$FLUX_INCLUDEDIR/flux/core.h"],
                             [x_ac_cv_flux_includedir="$FLUX_INCLUDEDIR"],
                             [x_ac_cv_flux_includedir=no])
-                      AC_MSG_WARN([and now x_ac_cv_flux_includedir is $x_ac_cv_flux_includedir])
                      ])
       AC_CACHE_CHECK([for FLUX library directory],
                      [x_ac_cv_flux_libdir],
                      [x_ac_cv_flux_libdir=no
                       AS_IF([test -z "$FLUX_LIBDIR"],
                             [FLUX_LIBDIR="$with_flux/lib64/"
-                              AC_MSG_WARN([FLUX_LIBDIR was size zero, now is $FLUX_LIBDIR])
                             ])
                       AS_IF([test -d "$FLUX_LIBDIR"],[
                         LIBS="-L$FLUX_LIBDIR -lflux-core $flux_extra_libs $LIBS"
@@ -83,10 +79,6 @@ AC_DEFUN([X_AC_FLUX], [
         FLUX_LIBADD="-lflux-core $flux_extra_libs"
     ])
   ])
-
-	AC_MSG_WARN([FLUX_LIBADD is $FLUX_LIBADD])
-	AC_MSG_WARN([FLUX_CPPFLAGS is $FLUX_CPPFLAGS])
-	AC_MSG_WARN([FLUX_LDFLAGS is $FLUX_LDFLAGS])
 
   AC_SUBST(FLUX_LIBADD)
   AC_SUBST(FLUX_CPPFLAGS)
