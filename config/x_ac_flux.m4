@@ -51,7 +51,7 @@ AC_DEFUN([X_AC_FLUX], [
                         LIBS="-L$FLUX_LIBDIR -lflux-core $flux_extra_libs $LIBS"
                         CFLAGS="-I $x_ac_cv_flux_includedir"
                         AC_LINK_IFELSE(
-                          [AC_LANG_PROGRAM([flux_open(NULL,0);])],
+                          [AC_LANG_PROGRAM([#include <flux/core.h>], [flux_open(NULL,0);])],
                           [x_ac_cv_flux_libdir=$FLUX_LIBDIR]
                         )
                       ])
