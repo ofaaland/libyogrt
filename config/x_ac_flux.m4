@@ -31,7 +31,7 @@ AC_DEFUN([X_AC_FLUX], [
 
     # Check for FLUX library in the default location.
     AS_IF([test x$with_flux = xyes -o x$with_flux = xcheck],[
-      AC_SEARCH_LIBS([flux_close], [flux-core], [found_flux=yes], [found_flux=no], [$flux_extra_libs])
+      AC_SEARCH_LIBS([flux_open], [flux-core], [found_flux=yes], [found_flux=no], [$flux_extra_libs])
     ])
 
     AS_IF([test x$found_flux = xno -a x$with_flux != xyes -a x$with_flux != xcheck ],[
@@ -51,7 +51,7 @@ AC_DEFUN([X_AC_FLUX], [
                         LIBS="-L$FLUX_LIBDIR -lflux-core $flux_extra_libs $LIBS"
                         CFLAGS="-I $x_ac_cv_flux_includedir"
                         AC_LINK_IFELSE(
-                          [AC_LANG_PROGRAM([flux_close(NULL);])],
+                          [AC_LANG_PROGRAM([flux_open(NULL,0);])],
                           [x_ac_cv_flux_libdir=$FLUX_LIBDIR]
                         )
                       ])
