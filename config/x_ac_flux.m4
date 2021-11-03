@@ -12,10 +12,11 @@
 #    This macro must be placed after AC_PROG_CC and before AC_PROG_LIBTOOL.
 ##*****************************************************************************
 
-# --with-flux=no	no test for flux, WITH_FLUX undefined
-# --with-flux=check	look in default location; warn on fail
+# --with-flux=no	no test for flux, HAVE_LIBFLUX undefined
+# --with-flux=check	look in default location
+# --with-flux		look in default location; error on fail
 # --with-flux=yes	look in default location; error on fail
-# --with-flux=<path>	look under <path>; warn on fail
+# --with-flux=<path>	look under <path>
 
 AC_DEFUN([X_AC_FLUX], [
   AC_ARG_WITH(
