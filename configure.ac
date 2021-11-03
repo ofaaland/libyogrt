@@ -68,6 +68,7 @@ AC_CONFIG_FILES([libyogrt.spec
                  doc/man/Makefile
                  src/Makefile
                  src/none/Makefile
+                 src/flux/Makefile
                  src/slurm/Makefile
                  src/lcrm/Makefile
                  src/moab/Makefile
