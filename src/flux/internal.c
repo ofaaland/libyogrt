@@ -43,12 +43,13 @@ int internal_init(int verb)
 
         if (getenv("FLUX_JOBID") != NULL) {
 		jobid_valid = 1;
-                return 1;
         } else {
-                debug("ERROR: FLUX_JOBID is not set."
+                error("ERROR: FLUX_JOBID is not set."
                       " Remaining time will be a bogus value.\n");
-                return 0;
+		jobid_valid = 0;
         }
+
+        return jobid_valid;
 }
 
 char *internal_backend_name(void)
@@ -63,7 +64,7 @@ void lookup_continuation (flux_future_t *f, void *arg)
     const char *value;
 
     if (flux_kvs_lookup_get (f, &value) < 0) {
-        perror("flux_kvs_lookup_get failed");
+        error("flux_kvs_lookup_get failed");
         return;
     }
 
@@ -74,39 +75,42 @@ void lookup_continuation (flux_future_t *f, void *arg)
 
 char * fetch_resource_string()
 {
-    flux_t *h;
-    flux_future_t *f;
-    flux_reactor_t *r;
+    flux_t *h = NULL;
+    flux_future_t *f = NULL;
+    flux_reactor_t *r = NULL;
     char *ns = NULL;
     struct lookup_ctx ctx = {0};
     const char *key = "resource.R";
 
     if (!(h = flux_open(NULL, 0))) {
-        perror("flux_open failed");
-        exit(1);
+        debug("flux_open failed");
+        goto out;
     }
 
     if (!(f = flux_kvs_lookup(h, ns, 0, key))) {
-        perror("flux_kvs_lookup failed");
-        exit(2);
+        error("flux_kvs_lookup failed");
+        goto out;
     }
 
     if (flux_future_then (f, -1., lookup_continuation, &ctx) < 0) {
-        perror("flux_future_then failed");
-        exit(3);
+        error("flux_future_then failed");
+        goto out;
     }
 
     if (!(r = flux_get_reactor(h))) {
-        perror ("flux_get_reactor failed");
-        exit(4);
+        error ("flux_get_reactor failed");
+        goto out;
     }
 
-    if (flux_reactor_run(r, 0) < 0) {
-        perror ("flux_reactor_run failed");
-        exit(5);
+    if (flux_reactor_run(r, 0) < 0)
+        error ("flux_reactor_run failed");
+        goto out;
     }
 
-    flux_close(h);
+out:
+
+    if (h)
+        flux_close(h);
 
     return ctx.resource;
 }
