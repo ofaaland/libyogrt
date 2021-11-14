@@ -45,6 +45,7 @@ AC_DEFUN([X_AC_FLUX], [
                      [x_ac_cv_flux_libdir=no
                       _x_ac_flux_libs_save=$LIBS
                       FLUX_LIBDIR="$with_flux/lib64/"
+                      AC_MSG_WARN([FLUX_LIBDIR is $FLUX_LIBDIR])
                       AS_IF([test -d "$FLUX_LIBDIR"],[
                         LIBS="-L$FLUX_LIBDIR -lflux-core $flux_extra_libs $LIBS"
                         CFLAGS="-I $x_ac_cv_flux_includedir"
