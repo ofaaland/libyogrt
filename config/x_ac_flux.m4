@@ -36,6 +36,7 @@ AC_DEFUN([X_AC_FLUX], [
       AC_CACHE_CHECK([for FLUX include directory],
                      [x_ac_cv_flux_includedir],
                      [FLUX_INCLUDEDIR="$with_flux/usr/include/"
+                      AC_MSG_WARN([FLUX_INCLUDEDIR is $FLUX_INCLUDEDIR])
                       AS_IF([test -f "$FLUX_INCLUDEDIR/flux/core.h"],
                             [x_ac_cv_flux_includedir="$FLUX_INCLUDEDIR"],
                             [x_ac_cv_flux_includedir=no])
