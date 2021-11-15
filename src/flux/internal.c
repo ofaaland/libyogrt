@@ -102,7 +102,7 @@ char * fetch_resource_string()
         goto out;
     }
 
-    if (flux_reactor_run(r, 0) < 0)
+    if (flux_reactor_run(r, 0) < 0) {
         error ("flux_reactor_run failed");
         goto out;
     }
