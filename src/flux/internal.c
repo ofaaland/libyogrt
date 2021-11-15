@@ -133,7 +133,10 @@ long int extract_expiration(char *resource)
         return BOGUS_TIME;
     }
 
-    json_unpack(root, "{s:{s?F}}", "execution", "expiration", &expiration);
+    if (json_unpack(root, "{s:{s?F}}", "execution", "expiration", &expiration) == -1) {
+        error("json_unpack failed");
+        return BOGUS_TIME;
+    }
 
     return (long int) expiration;
 }
