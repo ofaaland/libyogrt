@@ -41,22 +41,22 @@ int jobid_valid = 0;
 
 int internal_init(int verb)
 {
-	verbosity = verb;
+    verbosity = verb;
 
-        if (getenv("FLUX_JOBID") != NULL) {
-		jobid_valid = 1;
-        } else {
-                error("ERROR: FLUX_JOBID is not set."
-                      " Remaining time will be a bogus value.\n");
-		jobid_valid = 0;
-        }
+    if (getenv("FLUX_JOBID") != NULL) {
+        jobid_valid = 1;
+    } else {
+        error("ERROR: FLUX_JOBID is not set."
+              " Remaining time will be a bogus value.\n");
+        jobid_valid = 0;
+    }
 
-        return jobid_valid;
+    return jobid_valid;
 }
 
 char *internal_backend_name(void)
 {
-	return "FLUX";
+    return "FLUX";
 }
 
 void lookup_continuation (flux_future_t *f, void *arg)
@@ -150,43 +150,43 @@ int extract_expiration(char *resource)
 
 int internal_get_rem_time(time_t now, time_t last_update, int cached)
 {
-	char *res = NULL;
-	long int expiration;
-	int remaining_sec = BOGUS_TIME;
+    char *res = NULL;
+    long int expiration;
+    int remaining_sec = BOGUS_TIME;
 
-	/* only do this lookup with a valid jobid */
-	if (! jobid_valid) {
-		error("FLUX: No valid jobid to lookup!\n");
-		return BOGUS_TIME;
-	}
+    /* only do this lookup with a valid jobid */
+    if (! jobid_valid) {
+        error("FLUX: No valid jobid to lookup!\n");
+        return BOGUS_TIME;
+    }
 
-	if (fetch_resource_string(&res) != 0) {
-	    error("fetch_resourcestring failed");
+    if (fetch_resource_string(&res) != 0) {
+        error("fetch_resourcestring failed");
         goto out;
     }
 
-	expiration = extract_expiration(res);
+    expiration = extract_expiration(res);
     if (expiration == BOGUS_TIME) {
-	    error("extract_expiration failed");
+        error("extract_expiration failed");
         goto out;
     }
 
-	remaining_sec = (int) (expiration - time(NULL));
-	debug2("flux remaining seconds is %ld\n", remaining_sec);
+    remaining_sec = (int) (expiration - time(NULL));
+    debug2("flux remaining seconds is %ld\n", remaining_sec);
 
 out:
-	if (res)
-		free(res);
+    if (res)
+        free(res);
 
-	return remaining_sec;
+    return remaining_sec;
 }
 
 int internal_get_rank(void)
 {
-	return 0;
+    return 0;
 }
 
 int internal_fudge(void)
 {
-	return 0;
+    return 0;
 }
