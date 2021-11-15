@@ -86,7 +86,7 @@ int fetch_resource_string(char **s)
     int rc = 0;
 
     if (!(h = flux_open(NULL, 0))) {
-        debug("flux_open failed");
+        error("flux_open failed");
         rc = BOGUS_TIME;
         goto out;
     }
@@ -131,17 +131,17 @@ int extract_expiration(char *resource)
     json_t *startjson;
     json_t *expirjson;
     size_t flags = 0;
-    json_error_t error = {0};
+    json_error_t err = {0};
     double starttime, expiration;
 
-    root = json_loads(resource, flags, &error);
+    root = json_loads(resource, flags, &err);
     if (root == NULL) {
-        error("failed to load json string\n");
+        error("failed to load json resource string\n");
         return BOGUS_TIME;
     }
 
     if (json_unpack(root, "{s:{s?F}}", "execution", "expiration", &expiration) == -1) {
-        error("json_unpack failed");
+        error("json_unpack of resource string failed");
         return BOGUS_TIME;
     }
 
@@ -161,7 +161,7 @@ int internal_get_rem_time(time_t now, time_t last_update, int cached)
     }
 
     if (fetch_resource_string(&res) != 0) {
-        error("fetch_resourcestring failed");
+        error("fetch_resource string failed");
         goto out;
     }
 
@@ -172,7 +172,7 @@ int internal_get_rem_time(time_t now, time_t last_update, int cached)
     }
 
     remaining_sec = (int) (expiration - time(NULL));
-    debug2("flux remaining seconds is %ld\n", remaining_sec);
+    debug("flux remaining seconds is %ld\n", remaining_sec);
 
 out:
     if (res)
