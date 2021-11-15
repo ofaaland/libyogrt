@@ -75,7 +75,7 @@ void lookup_continuation (flux_future_t *f, void *arg)
     flux_future_destroy (f);
 }
 
-char * fetch_resource_string()
+int fetch_resource_string(char **s)
 {
     flux_t *h = NULL;
     flux_future_t *f = NULL;
@@ -83,29 +83,35 @@ char * fetch_resource_string()
     char *ns = NULL;
     struct lookup_ctx ctx = {0};
     const char *key = "resource.R";
+    int rc = 0;
 
     if (!(h = flux_open(NULL, 0))) {
         debug("flux_open failed");
+        rc = BOGUS_TIME;
         goto out;
     }
 
     if (!(f = flux_kvs_lookup(h, ns, 0, key))) {
         error("flux_kvs_lookup failed");
+        rc = BOGUS_TIME;
         goto out;
     }
 
     if (flux_future_then (f, -1., lookup_continuation, &ctx) < 0) {
         error("flux_future_then failed");
+        rc = BOGUS_TIME;
         goto out;
     }
 
     if (!(r = flux_get_reactor(h))) {
         error ("flux_get_reactor failed");
+        rc = BOGUS_TIME;
         goto out;
     }
 
     if (flux_reactor_run(r, 0) < 0) {
         error ("flux_reactor_run failed");
+        rc = BOGUS_TIME;
         goto out;
     }
 
@@ -114,10 +120,11 @@ out:
     if (h)
         flux_close(h);
 
-    return ctx.resource;
+    *s = ctx.resource;
+    return rc;
 }
 
-long int extract_expiration(char *resource)
+int extract_expiration(char *resource)
 {
     json_t *root;
     json_t *execution;
@@ -138,15 +145,14 @@ long int extract_expiration(char *resource)
         return BOGUS_TIME;
     }
 
-    return (long int) expiration;
+    return (int) expiration;
 }
 
 int internal_get_rem_time(time_t now, time_t last_update, int cached)
 {
 	char *res = NULL;
 	long int expiration;
-	long int remaining_sec;
-        int secs_left = 0;
+	int remaining_sec = BOGUS_TIME;
 
 	/* only do this lookup with a valid jobid */
 	if (! jobid_valid) {
@@ -154,28 +160,25 @@ int internal_get_rem_time(time_t now, time_t last_update, int cached)
 		return BOGUS_TIME;
 	}
 
-	res = fetch_resource_string();
-	debug2("flux resource is %s\n", res);
+	if (fetch_resource_string(&res) != 0) {
+	    error("fetch_resourcestring failed");
+        goto out;
+    }
 
 	expiration = extract_expiration(res);
-	debug2("flux expiration is %ld\n", expiration);
+    if (expiration == BOGUS_TIME) {
+	    error("extract_expiration failed");
+        goto out;
+    }
 
-	remaining_sec = expiration - time(NULL);
-	printf("flux remaining seconds is %ld\n", remaining_sec);
+	remaining_sec = (int) (expiration - time(NULL));
+	debug2("flux remaining seconds is %ld\n", remaining_sec);
 
-	if (remaining_sec >= INT_MAX) {
-		debug2("flux remaining_sec (%ld) >= INT_MAX, truncating\n",
-		    remaining_sec);
-		remaining_sec = INT_MAX - 1;
-	}
-
-	secs_left = remaining_sec;
-
+out:
 	if (res)
 		free(res);
 
-	debug2("FLUX reports remaining time of %d sec.\n", secs_left);
-	return secs_left;
+	return remaining_sec;
 }
 
 int internal_get_rank(void)
