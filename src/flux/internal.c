@@ -34,6 +34,8 @@ struct lookup_ctx {
 
 #include "internal_yogrt.h"
 
+#define BOGUS_TIME -1
+
 int verbosity = 0;
 int jobid_valid = 0;
 
@@ -127,8 +129,8 @@ long int extract_expiration(char *resource)
 
     root = json_loads(resource, flags, &error);
     if (root == NULL) {
-        printf("failed to load json string\n");
-        return -1.;
+        error("failed to load json string\n");
+        return BOGUS_TIME;
     }
 
     json_unpack(root, "{s:{s?F}}", "execution", "expiration", &expiration);
@@ -146,7 +148,7 @@ int internal_get_rem_time(time_t now, time_t last_update, int cached)
 	/* only do this lookup with a valid jobid */
 	if (! jobid_valid) {
 		error("FLUX: No valid jobid to lookup!\n");
-		return -1;
+		return BOGUS_TIME;
 	}
 
 	res = fetch_resource_string();
