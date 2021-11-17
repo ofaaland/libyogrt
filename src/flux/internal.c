@@ -62,7 +62,6 @@ char *internal_backend_name(void)
 void lookup_continuation (flux_future_t *f, void *arg)
 {
     struct lookup_ctx *ctx = arg;
-    const char *key = flux_kvs_lookup_get_key (f);
     const char *value;
 
     if (flux_kvs_lookup_get (f, &value) < 0) {
