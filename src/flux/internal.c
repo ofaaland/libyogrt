@@ -43,10 +43,10 @@ int internal_init(int verb)
 {
     verbosity = verb;
 
-    if (getenv("FLUX_JOBID") != NULL) {
+    if (getenv("FLUX_JOB_ID") != NULL) {
         jobid_valid = 1;
     } else {
-        error("ERROR: FLUX_JOBID is not set."
+        error("ERROR: FLUX_JOB_ID is not set."
               " Remaining time will be a bogus value.\n");
         jobid_valid = 0;
     }
