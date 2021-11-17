@@ -66,6 +66,7 @@ void lookup_continuation (flux_future_t *f, void *arg)
 
     if (flux_kvs_lookup_get (f, &value) < 0) {
         error("flux_kvs_lookup_get failed\n");
+        ctx->resource = NULL;
         return;
     }
 
@@ -120,6 +121,9 @@ out:
         flux_close(h);
 
     *s = ctx.resource;
+    if (! *s)
+        rc = BOGUS_TIME;
+
     return rc;
 }
 
