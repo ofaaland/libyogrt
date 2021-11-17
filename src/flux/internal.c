@@ -66,7 +66,7 @@ void lookup_continuation (flux_future_t *f, void *arg)
     const char *value;
 
     if (flux_kvs_lookup_get (f, &value) < 0) {
-        error("flux_kvs_lookup_get failed");
+        error("flux_kvs_lookup_get failed\n");
         return;
     }
 
@@ -86,31 +86,31 @@ int fetch_resource_string(char **s)
     int rc = 0;
 
     if (!(h = flux_open(NULL, 0))) {
-        error("flux_open failed");
+        error("flux_open failed\n");
         rc = BOGUS_TIME;
         goto out;
     }
 
     if (!(f = flux_kvs_lookup(h, ns, 0, key))) {
-        error("flux_kvs_lookup failed");
+        error("flux_kvs_lookup failed\n");
         rc = BOGUS_TIME;
         goto out;
     }
 
     if (flux_future_then (f, -1., lookup_continuation, &ctx) < 0) {
-        error("flux_future_then failed");
+        error("flux_future_then failed\n");
         rc = BOGUS_TIME;
         goto out;
     }
 
     if (!(r = flux_get_reactor(h))) {
-        error ("flux_get_reactor failed");
+        error ("flux_get_reactor failed\n");
         rc = BOGUS_TIME;
         goto out;
     }
 
     if (flux_reactor_run(r, 0) < 0) {
-        error ("flux_reactor_run failed");
+        error ("flux_reactor_run failed\n");
         rc = BOGUS_TIME;
         goto out;
     }
