@@ -130,12 +130,9 @@ out:
 int extract_expiration(char *resource)
 {
     json_t *root;
-    json_t *execution;
-    json_t *startjson;
-    json_t *expirjson;
     size_t flags = 0;
     json_error_t err = {0};
-    double starttime, expiration;
+    double expiration;
 
     root = json_loads(resource, flags, &err);
     if (root == NULL) {
