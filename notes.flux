@@ -13,6 +13,11 @@ branch b-support-flux-5:
 	like querying resources, is done another way that is not affected by this.
 
 branch b-support-flux-6:
+	Based on "flux job info R" code path.
+	"flux mini run": works as myself
+	"flux mini alloc": this works, but only if running as root.
+	no flux session: works as myself
+
 
 My notes from slack are:
 	Me> I need to re-read the conversation from my first query on this topic.  I see discussion of flux_job_list_id and talking to the parent...
