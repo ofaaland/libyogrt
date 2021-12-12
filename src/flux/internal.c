@@ -36,20 +36,31 @@ struct lookup_ctx {
 
 #define BOGUS_TIME -1
 
-int verbosity = 0;
 int jobid_valid = 0;
+int verbosity = 0;
+
+static flux_jobid_t jobid = 0;
 
 int internal_init(int verb)
 {
-    verbosity = verb;
+    char *jobid_str;
 
-    if (getenv("FLUX_JOB_ID") != NULL) {
-        jobid_valid = 1;
-    } else {
+	verbosity = verb;
+    jobid_valid = 0;
+
+    if ((jobid_str = getenv("FLUX_JOB_ID")) == NULL) {
         error("ERROR: FLUX_JOB_ID is not set."
               " Remaining time will be a bogus value.\n");
-        jobid_valid = 0;
+        return jobid_valid;
     }
+
+	if (flux_job_id_parse(jobid_str, &jobid) < 0) {
+        error("ERROR: Unable to parse FLUX_JOB_ID %s."
+              " Remaining time will be a bogus value.\n", jobid_str);
+        return jobid_valid;
+    }
+
+    jobid_valid = 1;
 
     return jobid_valid;
 }
@@ -59,98 +70,79 @@ char *internal_backend_name(void)
     return "FLUX";
 }
 
-void lookup_continuation (flux_future_t *f, void *arg)
-{
-    struct lookup_ctx *ctx = arg;
-    const char *value;
-
-    if (flux_kvs_lookup_get (f, &value) < 0) {
-        error("flux_kvs_lookup_get failed\n");
-        ctx->resource = NULL;
-        return;
-    }
-
-    ctx->resource = strdup(value);
-
-    flux_future_destroy (f);
-}
-
-int fetch_resource_string(char **s)
+static int get_job_expiration(flux_jobid_t id, long int *expiration)
 {
     flux_t *h = NULL;
-    flux_future_t *f = NULL;
-    flux_reactor_t *r = NULL;
-    char *ns = NULL;
-    struct lookup_ctx ctx = {0};
-    const char *key = "resource.R";
-    int rc = 0;
+    flux_t *child_handle = NULL;
+    flux_future_t *f;
+    json_t *jobs;
+    json_t *value;
+    json_t *ovalue;
+    const char *uri = NULL;
+    int rc = -1;
 
     if (!(h = flux_open(NULL, 0))) {
-        error("flux_open failed\n");
-        rc = BOGUS_TIME;
+        error("ERROR: flux_open() failed");
         goto out;
     }
 
-    if (!(f = flux_kvs_lookup(h, ns, 0, key))) {
-        error("flux_kvs_lookup failed\n");
-        rc = BOGUS_TIME;
+    /*
+     * Determine whether to ask our parent or not
+     * See https://github.com/flux-framework/flux-core/issues/3817
+     */
+
+	if (!getenv("FLUX_KVS_NAMESPACE")) {
+        uri = flux_attr_get(h, "parent-uri");
+        if (!uri) {
+		    error("ERROR: no FLUX_KVS_NAMESPACE and flux_attr_get failed\n");
+            goto out;
+        }
+
+        child_handle = h;
+        h = flux_open(uri, 0);
+        if (!h) {
+		    printf("flux_open with parent-uri %s failed\n", uri);
+            goto out;
+        }
+    }
+
+    if (!(f = flux_job_list(h, 1, "[\"expiration\"]",
+        FLUX_USERID_UNKNOWN, FLUX_JOB_STATE_RUNNING))) {
+        error("ERROR: flux_job_list failed.");
         goto out;
     }
 
-    if (flux_future_then (f, -1., lookup_continuation, &ctx) < 0) {
-        error("flux_future_then failed\n");
-        rc = BOGUS_TIME;
+    if (flux_rpc_get_unpack(f, "{s:o}", "jobs", &jobs) < 0) {
+        error("ERROR: flux_rpc_get_unpack failed.");
         goto out;
     }
 
-    if (!(r = flux_get_reactor(h))) {
-        error ("flux_get_reactor failed\n");
-        rc = BOGUS_TIME;
+    if (!(value = json_array_get(jobs, 0))) {
+        error("ERROR: flux_array_get failed.");
         goto out;
     }
 
-    if (flux_reactor_run(r, 0) < 0) {
-        error ("flux_reactor_run failed\n");
-        rc = BOGUS_TIME;
+    if (!(ovalue = json_object_get(value, "expiration"))) {
+        error("ERROR: flux_object_get failed.");
         goto out;
     }
+
+    *expiration = (long int) json_real_value(ovalue);
 
 out:
 
+    if (f)
+        flux_future_destroy(f);
     if (h)
         flux_close(h);
-
-    *s = ctx.resource;
-    if (! *s)
-        rc = BOGUS_TIME;
+    if (child_handle)
+        flux_close(child_handle);
 
     return rc;
 }
 
-int extract_expiration(char *resource)
-{
-    json_t *root;
-    size_t flags = 0;
-    json_error_t err = {0};
-    double expiration;
-
-    root = json_loads(resource, flags, &err);
-    if (root == NULL) {
-        error("failed to load json resource string\n");
-        return BOGUS_TIME;
-    }
-
-    if (json_unpack(root, "{s:{s?F}}", "execution", "expiration", &expiration) == -1) {
-        error("json_unpack of resource string failed");
-        return BOGUS_TIME;
-    }
-
-    return (int) expiration;
-}
-
 int internal_get_rem_time(time_t now, time_t last_update, int cached)
 {
-    char *res = NULL;
     long int expiration;
     int remaining_sec = BOGUS_TIME;
 
@@ -160,13 +152,7 @@ int internal_get_rem_time(time_t now, time_t last_update, int cached)
         return BOGUS_TIME;
     }
 
-    if (fetch_resource_string(&res) != 0) {
-        error("fetch_resource string failed");
-        goto out;
-    }
-
-    expiration = extract_expiration(res);
-    if (expiration == BOGUS_TIME) {
+	if (get_job_expiration(jobid, &expiration)) {
         error("extract_expiration failed");
         goto out;
     }
@@ -175,9 +161,6 @@ int internal_get_rem_time(time_t now, time_t last_update, int cached)
     debug("flux remaining seconds is %ld\n", remaining_sec);
 
 out:
-    if (res)
-        free(res);
-
     return remaining_sec;
 }
 
@@ -190,3 +173,7 @@ int internal_fudge(void)
 {
     return 0;
 }
+
+/*
+ * vim: tabstop=4 shiftwidth=4 expandtab smartindent:
+ */
