@@ -78,6 +78,7 @@ static int get_job_expiration(flux_jobid_t id, long int *expiration)
     json_t *jobs;
     json_t *value;
     json_t *ovalue;
+    double exp;
     const char *uri = NULL;
     int rc = -1;
 
@@ -127,7 +128,13 @@ static int get_job_expiration(flux_jobid_t id, long int *expiration)
         goto out;
     }
 
-    *expiration = (long int) json_real_value(ovalue);
+    if ((exp = json_real_value(ovalue)) == 0.0) {
+        error("ERROR: json_real_value failed.");
+        goto out;
+    }
+
+    *expiration = (long int) exp;
+    rc = 0;
 
 out:
 
@@ -153,7 +160,7 @@ int internal_get_rem_time(time_t now, time_t last_update, int cached)
     }
 
 	if (get_job_expiration(jobid, &expiration)) {
-        error("extract_expiration failed");
+        error("get_job_expiration failed");
         goto out;
     }
 
