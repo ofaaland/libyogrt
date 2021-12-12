@@ -83,7 +83,7 @@ static int get_job_expiration(flux_jobid_t id, long int *expiration)
     int rc = -1;
 
     if (!(h = flux_open(NULL, 0))) {
-        error("ERROR: flux_open() failed");
+        error("ERROR: flux_open() failed\n");
         goto out;
     }
 
@@ -109,27 +109,27 @@ static int get_job_expiration(flux_jobid_t id, long int *expiration)
 
     if (!(f = flux_job_list(h, 1, "[\"expiration\"]",
         FLUX_USERID_UNKNOWN, FLUX_JOB_STATE_RUNNING))) {
-        error("ERROR: flux_job_list failed.");
+        error("ERROR: flux_job_list failed.\n");
         goto out;
     }
 
     if (flux_rpc_get_unpack(f, "{s:o}", "jobs", &jobs) < 0) {
-        error("ERROR: flux_rpc_get_unpack failed.");
+        error("ERROR: flux_rpc_get_unpack failed.\n");
         goto out;
     }
 
     if (!(value = json_array_get(jobs, 0))) {
-        error("ERROR: flux_array_get failed.");
+        error("ERROR: flux_array_get failed.\n");
         goto out;
     }
 
     if (!(ovalue = json_object_get(value, "expiration"))) {
-        error("ERROR: flux_object_get failed.");
+        error("ERROR: flux_object_get failed.\n");
         goto out;
     }
 
     if ((exp = json_real_value(ovalue)) == 0.0) {
-        error("ERROR: json_real_value failed.");
+        error("ERROR: json_real_value failed.\n");
         goto out;
     }
 
@@ -160,7 +160,7 @@ int internal_get_rem_time(time_t now, time_t last_update, int cached)
     }
 
 	if (get_job_expiration(jobid, &expiration)) {
-        error("get_job_expiration failed");
+        error("get_job_expiration failed\n");
         goto out;
     }
 
