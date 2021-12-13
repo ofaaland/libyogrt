@@ -78,7 +78,7 @@ static int get_job_expiration(flux_jobid_t id, long int *expiration)
     int rc = -1;
 
     if (!(h = flux_open(NULL, 0))) {
-        error("ERROR: flux_open() failed\n");
+        error("ERROR: flux_open() failed with errno %d\n", errno);
         goto out;
     }
 
@@ -90,20 +90,22 @@ static int get_job_expiration(flux_jobid_t id, long int *expiration)
 	if (!getenv("FLUX_KVS_NAMESPACE")) {
         uri = flux_attr_get(h, "parent-uri");
         if (!uri) {
-		    error("ERROR: no FLUX_KVS_NAMESPACE and flux_attr_get failed\n");
+		    error("ERROR: no FLUX_KVS_NAMESPACE and flux_attr_get failed with "
+                  "errno %d\n", errno);
             goto out;
         }
 
         child_handle = h;
         h = flux_open(uri, 0);
         if (!h) {
-		    printf("flux_open with parent-uri %s failed\n", uri);
+		    printf("flux_open with parent-uri %s failed with errno %d\n", uri,
+                   errno);
             goto out;
         }
     }
 
     if (!(f = flux_job_list_id(h, jobid, "[\"expiration\"]"))) {
-        error("ERROR: flux_job_list failed.\n");
+        error("ERROR: flux_job_list failed with errno %d.\n", errno);
         goto out;
     }
 
