@@ -37,9 +37,20 @@ int verbosity = 0;
 int internal_init(int verb)
 {
 	verbosity = verb;
+    flux_t *h = NULL;
+    char *state;
 
-	if (!getenv("FLUX_JOB_ID")) {
-        debug("ERROR: FLUX_JOB_ID is not set."
+    if (!(h = flux_open(NULL, 0))) {
+        error("ERROR: flux_open() failed. Are you running under flux?\n"
+              " Remaining time will be a bogus value.\n");
+        return 0;
+    }
+
+    state = flux_attr_get(h, "state");
+    flux_close(h);
+
+    if (!state) {
+        error("ERROR: flux_attr_get() failed. Are you running under flux?\n"
               " Remaining time will be a bogus value.\n");
         return 0;
     }
