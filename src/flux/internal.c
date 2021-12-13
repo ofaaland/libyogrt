@@ -78,7 +78,6 @@ static int get_job_expiration(flux_jobid_t id, long int *expiration)
     int rc = -1;
     int thisrc;
     const flux_msg_t *msg;
-    long long int job_jobid;
 
     if (!(h = flux_open(NULL, 0))) {
         error("ERROR: flux_open() failed\n");
