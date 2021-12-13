@@ -63,6 +63,7 @@ static int get_job_expiration(long int *expiration)
     double exp;
     const char *uri = NULL;
     int rc = -1;
+    int numjobs;
 
     if (!(h = flux_open(NULL, 0))) {
         error("ERROR: flux_open() failed\n");
@@ -89,7 +90,7 @@ static int get_job_expiration(long int *expiration)
         }
     }
 
-    if (!(f = flux_job_list(h, 1, "[\"expiration\"]",
+    if (!(f = flux_job_list(h, 2, "[\"expiration\"]",
         FLUX_USERID_UNKNOWN, FLUX_JOB_STATE_RUNNING))) {
         error("ERROR: flux_job_list failed.\n");
         goto out;
@@ -97,6 +98,17 @@ static int get_job_expiration(long int *expiration)
 
     if (flux_rpc_get_unpack(f, "{s:o}", "jobs", &jobs) < 0) {
         error("ERROR: flux_rpc_get_unpack failed.\n");
+        goto out;
+    }
+
+    numjobs = json_array_size(jobs);
+    if (numjobs == 0) {
+        error("ERROR: flux_array_size reported 0 jobs found.\n");
+        goto out;
+    }
+
+    if (numjobs > 1) {
+        error("ERROR: flux_array_size reported more than 1 job found.\n");
         goto out;
     }
 
