@@ -76,7 +76,6 @@ static int get_job_expiration(flux_jobid_t id, long int *expiration)
     double exp;
     const char *uri = NULL;
     int rc = -1;
-    int thisrc;
 
     if (!(h = flux_open(NULL, 0))) {
         error("ERROR: flux_open() failed\n");
