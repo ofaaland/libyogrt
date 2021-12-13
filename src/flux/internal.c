@@ -144,9 +144,6 @@ static int get_job_expiration(flux_jobid_t id, long int *expiration)
         }
 
         job_jobid = json_integer_value(ovalue);
-        printf("jobid:%lld job_jobid:%lld EQ %d\n", jobid, job_jobid,
-            jobid == job_jobid);
-
         if (job_jobid == jobid) {
             if (!(ovalue = json_object_get(value, "expiration"))) {
                 error("ERROR: flux_object_get failed.\n");
