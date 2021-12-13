@@ -28,10 +28,6 @@
 #include <limits.h>
 #include <flux/core.h>
 
-struct lookup_ctx {
-    char *resource;
-};
-
 #include "internal_yogrt.h"
 
 #define BOGUS_TIME -1
