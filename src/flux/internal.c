@@ -73,7 +73,6 @@ static int get_job_expiration(flux_jobid_t id, long int *expiration)
     flux_future_t *f;
     json_t *job;
     json_t *value;
-    json_t *ovalue;
     double exp;
     const char *uri = NULL;
     int rc = -1;
@@ -116,12 +115,12 @@ static int get_job_expiration(flux_jobid_t id, long int *expiration)
         goto out;
     }
 
-    if (!(ovalue = json_object_get(job, "expiration"))) {
+    if (!(value = json_object_get(job, "expiration"))) {
         error("ERROR: flux_object_get for id failed.\n");
         goto out;
     }
 
-    if ((exp = json_real_value(ovalue)) == 0.0) {
+    if ((exp = json_real_value(value)) == 0.0) {
         error("ERROR: json_real_value failed.\n");
         goto out;
     }
