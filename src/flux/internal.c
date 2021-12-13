@@ -77,7 +77,9 @@ static int get_job_expiration(flux_jobid_t id, long int *expiration)
     double exp;
     const char *uri = NULL;
     int rc = -1;
+    int thisrc;
     int numjobs;
+    const flux_msg_t *msg;
 
     if (!(h = flux_open(NULL, 0))) {
         error("ERROR: flux_open() failed\n");
@@ -104,17 +106,17 @@ static int get_job_expiration(flux_jobid_t id, long int *expiration)
         }
     }
 
-    if (!(f = flux_job_list(h, 2, "[\"expiration\"]",
-        FLUX_USERID_UNKNOWN, FLUX_JOB_STATE_RUNNING))) {
+    if (!(f = flux_job_list(h, 666, "[\"expiration\"]", FLUX_USERID_UNKNOWN, 0))) {
         error("ERROR: flux_job_list failed.\n");
         goto out;
     }
 
     if (flux_rpc_get_unpack(f, "{s:o}", "jobs", &jobs) < 0) {
-        error("ERROR: flux_rpc_get_unpack failed.\n");
+        error("ERROR: flux_rpc_get_unpack failed with errno %d.\n", errno);
         goto out;
     }
 
+/*
     numjobs = json_array_size(jobs);
     if (numjobs == 0) {
         error("ERROR: flux_array_size reported 0 jobs found.\n");
@@ -130,15 +132,34 @@ static int get_job_expiration(flux_jobid_t id, long int *expiration)
         error("ERROR: flux_array_get failed.\n");
         goto out;
     }
+    */
 
-    if (!(ovalue = json_object_get(value, "expiration"))) {
-        error("ERROR: flux_object_get failed.\n");
-        goto out;
-    }
+    int index;
+    json_array_foreach(jobs, index, value) {
+        long long int job_jobid;
 
-    if ((exp = json_real_value(ovalue)) == 0.0) {
-        error("ERROR: json_real_value failed.\n");
-        goto out;
+        if (!(ovalue = json_object_get(value, "id"))) {
+            error("ERROR: flux_object_get failed.\n");
+            goto out;
+        }
+
+        job_jobid = json_integer_value(ovalue);
+        printf("jobid:%lld job_jobid:%lld EQ %d\n", jobid, job_jobid,
+            jobid == job_jobid);
+
+        if (job_jobid == jobid) {
+            if (!(ovalue = json_object_get(value, "expiration"))) {
+                error("ERROR: flux_object_get failed.\n");
+                goto out;
+            }
+
+            if ((exp = json_real_value(ovalue)) == 0.0) {
+                error("ERROR: json_real_value failed.\n");
+                goto out;
+            }
+
+            break;
+        }
     }
 
     *expiration = (long int) exp;
