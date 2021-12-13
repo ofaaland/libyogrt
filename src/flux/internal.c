@@ -116,16 +116,6 @@ static int get_job_expiration(flux_jobid_t id, long int *expiration)
         goto out;
     }
 
-    if (!(ovalue = json_object_get(job, "id"))) {
-        error("ERROR: flux_object_get for id failed.\n");
-        goto out;
-    }
-
-    if (jobid != json_integer_value(ovalue)) {
-        error("ERROR: jobid does not match object flux returned.\n");
-        goto out;
-    }
-
     if (!(ovalue = json_object_get(job, "expiration"))) {
         error("ERROR: flux_object_get for id failed.\n");
         goto out;
