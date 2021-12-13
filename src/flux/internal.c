@@ -32,30 +32,33 @@
 
 #define BOGUS_TIME -1
 
+int jobid_valid = 0;
 int verbosity = 0;
+
+static flux_jobid_t jobid = 0;
 
 int internal_init(int verb)
 {
+    char *jobid_str;
+
 	verbosity = verb;
-    flux_t *h = NULL;
-    char *state;
+    jobid_valid = 0;
 
-    if (!(h = flux_open(NULL, 0))) {
-        error("ERROR: flux_open() failed. Are you running under flux?\n"
+    if ((jobid_str = getenv("FLUX_JOB_ID")) == NULL) {
+        error("ERROR: FLUX_JOB_ID is not set."
               " Remaining time will be a bogus value.\n");
-        return 0;
+        return jobid_valid;
     }
 
-    state = flux_attr_get(h, "state");
-    flux_close(h);
-
-    if (!state) {
-        error("ERROR: flux_attr_get() failed. Are you running under flux?\n"
-              " Remaining time will be a bogus value.\n");
-        return 0;
+	if (flux_job_id_parse(jobid_str, &jobid) < 0) {
+        error("ERROR: Unable to parse FLUX_JOB_ID %s."
+              " Remaining time will be a bogus value.\n", jobid_str);
+        return jobid_valid;
     }
 
-    return 1;
+    jobid_valid = 1;
+
+    return jobid_valid;
 }
 
 char *internal_backend_name(void)
@@ -63,7 +66,7 @@ char *internal_backend_name(void)
     return "FLUX";
 }
 
-static int get_job_expiration(long int *expiration)
+static int get_job_expiration(flux_jobid_t id, long int *expiration)
 {
     flux_t *h = NULL;
     flux_t *child_handle = NULL;
@@ -158,7 +161,13 @@ int internal_get_rem_time(time_t now, time_t last_update, int cached)
     long int expiration;
     int remaining_sec = BOGUS_TIME;
 
-	if (get_job_expiration(&expiration)) {
+    /* only do this lookup with a valid jobid */
+    if (! jobid_valid) {
+        error("FLUX: No valid jobid to lookup!\n");
+        return BOGUS_TIME;
+    }
+
+	if (get_job_expiration(jobid, &expiration)) {
         error("get_job_expiration failed\n");
         goto out;
     }
