@@ -166,13 +166,12 @@ int internal_get_rank(void)
 {
     char *rank_str;
 
-    if ((rank_str = getenv("FLUX_TASK_RANK")) == NULL) {
-        error("ERROR: FLUX_TASK_RANK is not set.\n"
-              " All ranks will maintain remaining time.\n");
-        return 0;
-    }
+    rank_str = getenv("FLUX_TASK_RANK");
 
-    return atoi(rank_str);
+    if (rank_str)
+        return atoi(rank_str);
+    else
+        return 0;
 }
 
 int internal_fudge(void)
