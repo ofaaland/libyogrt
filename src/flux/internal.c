@@ -129,12 +129,15 @@ static int get_job_expiration(flux_jobid_t id, long int *expiration)
 
 out:
 
-    if (f)
+    if (f) {
         flux_future_destroy(f);
-    if (h)
+    } if (h) {
         flux_close(h);
-    if (child_handle)
+    }
+
+    if (child_handle) {
         flux_close(child_handle);
+    }
 
     return rc;
 }
@@ -167,10 +170,11 @@ int internal_get_rank(void)
 
     rank_str = getenv("FLUX_TASK_RANK");
 
-    if (rank_str)
+    if (rank_str) {
         return atoi(rank_str);
-    else
+    } else {
         return 0;
+    }
 }
 
 int internal_fudge(void)
