@@ -144,14 +144,13 @@ int internal_get_rem_time(time_t now, time_t last_update, int cached)
     long int expiration;
     int remaining_sec = BOGUS_TIME;
 
-    /* only do this lookup with a valid jobid */
     if (! jobid_valid) {
         error("FLUX: No valid jobid to lookup!\n");
         return BOGUS_TIME;
     }
 
     if (get_job_expiration(jobid, &expiration)) {
-        error("get_job_expiration failed\n");
+        error("FLUX: get_job_expiration failed\n");
         goto out;
     }
 
