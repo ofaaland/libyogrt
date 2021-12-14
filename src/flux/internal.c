@@ -41,7 +41,7 @@ int internal_init(int verb)
 {
     char *jobid_str;
 
-	verbosity = verb;
+    verbosity = verb;
     jobid_valid = 0;
 
     if ((jobid_str = getenv("FLUX_JOB_ID")) == NULL) {
@@ -50,7 +50,7 @@ int internal_init(int verb)
         return jobid_valid;
     }
 
-	if (flux_job_id_parse(jobid_str, &jobid) < 0) {
+    if (flux_job_id_parse(jobid_str, &jobid) < 0) {
         error("ERROR: Unable to parse FLUX_JOB_ID %s."
               " Remaining time will be a bogus value.\n", jobid_str);
         return jobid_valid;
@@ -87,10 +87,10 @@ static int get_job_expiration(flux_jobid_t id, long int *expiration)
      * See https://github.com/flux-framework/flux-core/issues/3817
      */
 
-	if (!getenv("FLUX_KVS_NAMESPACE")) {
+    if (!getenv("FLUX_KVS_NAMESPACE")) {
         uri = flux_attr_get(h, "parent-uri");
         if (!uri) {
-		    error("ERROR: no FLUX_KVS_NAMESPACE and flux_attr_get failed with "
+            error("ERROR: no FLUX_KVS_NAMESPACE and flux_attr_get failed with "
                   "errno %d\n", errno);
             goto out;
         }
@@ -98,7 +98,7 @@ static int get_job_expiration(flux_jobid_t id, long int *expiration)
         child_handle = h;
         h = flux_open(uri, 0);
         if (!h) {
-		    printf("flux_open with parent-uri %s failed with errno %d\n", uri,
+            printf("flux_open with parent-uri %s failed with errno %d\n", uri,
                    errno);
             goto out;
         }
@@ -150,7 +150,7 @@ int internal_get_rem_time(time_t now, time_t last_update, int cached)
         return BOGUS_TIME;
     }
 
-	if (get_job_expiration(jobid, &expiration)) {
+    if (get_job_expiration(jobid, &expiration)) {
         error("get_job_expiration failed\n");
         goto out;
     }
