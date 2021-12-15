@@ -109,18 +109,8 @@ static int get_job_expiration(flux_jobid_t id, long int *expiration)
 		goto out;
 	}
 
-	if (flux_rpc_get_unpack(f, "{s:o}", "job", &job) < 0) {
+	if (flux_rpc_get_unpack (f, "{s:{s:f}}", "job", "expiration", &exp) < 0) {
 		error("ERROR: flux_rpc_get_unpack failed with errno %d.\n", errno);
-		goto out;
-	}
-
-	if (!(value = json_object_get(job, "expiration"))) {
-		error("ERROR: flux_object_get for id failed.\n");
-		goto out;
-	}
-
-	if ((exp = json_real_value(value)) == 0.0) {
-		error("ERROR: json_real_value failed.\n");
 		goto out;
 	}
 
@@ -128,16 +118,9 @@ static int get_job_expiration(flux_jobid_t id, long int *expiration)
 	rc = 0;
 
 out:
-
-	if (f) {
-		flux_future_destroy(f);
-	} if (h) {
-		flux_close(h);
-	}
-
-	if (child_handle) {
-		flux_close(child_handle);
-	}
+	flux_future_destroy(f);
+	flux_close(h);
+	flux_close(child_handle);
 
 	return rc;
 }
