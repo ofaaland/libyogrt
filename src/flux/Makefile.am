@@ -3,8 +3,8 @@ AM_CPPFLAGS = -I$(top_srcdir)/src
 sublibdir = $(libdir)/libyogrt
 sublib_LTLIBRARIES = libyogrt-flux.la
 libyogrt_flux_la_SOURCES = internal.c
-libyogrt_flux_la_LIBADD = $(FLUX_LIBADD)
-libyogrt_flux_la_CPPFLAGS = $(AM_CPPFLAGS) $(FLUX_CPPFLAGS)
+libyogrt_flux_la_LIBADD = $(FLUX_CORE_LIBS)
+libyogrt_flux_la_CPPFLAGS = $(AM_CPPFLAGS) $(FLUX_CORE_CFLAGS)
 libyogrt_flux_la_LDFLAGS = $(FLUX_LDFLAGS) \
 	-no-undefined \
 	-export-symbols-regex "^internal_.*" \
