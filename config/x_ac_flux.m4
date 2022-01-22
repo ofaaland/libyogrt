@@ -33,7 +33,6 @@ AC_DEFUN([X_AC_FLUX], [
 
     AC_MSG_WARN([FLUX_CFLAGS is $FLUX_CFLAGS])
     AC_MSG_WARN([FLUX_LIBS is $FLUX_LIBS])
-    AC_MSG_WARN([FLUX_LDFLAGS is $FLUX_LDFLAGS])
 
     AS_IF([test x$with_flux != xyes -a x$with_flux != xcheck -a x$found_flux = xno ],[
       AC_CACHE_CHECK([for FLUX include directory],
@@ -60,12 +59,12 @@ AC_DEFUN([X_AC_FLUX], [
                      ])
       AS_IF([test x$x_ac_cv_flux_includedir != xno -a x$x_ac_cv_flux_libdir != xno],[
              found_flux=yes
-             FLUX_CPPFLAGS="-I$FLUX_INCLUDEDIR"
-             FLUX_LDFLAGS="-L$FLUX_LIBDIR"
+             FLUX_CFLAGS="-I$FLUX_INCLUDEDIR"
+             FLUX_LIBS="-L$FLUX_LIBDIR"
             ],[
              found_flux=no
-             FLUX_CPPFLAGS=""
-             FLUX_LDFLAGS=""
+             FLUX_CFLAGS=""
+             FLUX_LIBS=""
             ])
     ])
 
@@ -76,8 +75,8 @@ AC_DEFUN([X_AC_FLUX], [
     ], [
         FLUX_LIBADD="-lflux-core"
         AC_SUBST(FLUX_LIBADD)
-        AC_SUBST(FLUX_CPPFLAGS)
-        AC_SUBST(FLUX_LDFLAGS)
+        AC_SUBST(FLUX_CFLAGS)
+        AC_SUBST(FLUX_LIBS)
         AC_DEFINE([HAVE_LIBFLUX], 1, [Define to 1 if you have the `flux-core' library (-lflux-core).])
     ])
   ])
