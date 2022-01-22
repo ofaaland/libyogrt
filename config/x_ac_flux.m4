@@ -3,7 +3,7 @@
 #    X_AC_FLUX()
 #
 #  DESCRIPTION:
-#    Check the usual suspects for a FLUX installation,
+#    Check pkg-configfor a FLUX installation,
 #    updating CPPFLAGS and LDFLAGS as necessary.
 #
 #  WARNINGS:
@@ -24,15 +24,18 @@ AC_DEFUN([X_AC_FLUX], [
     [with_flux=check])
 
   AS_IF([test x$with_flux != xno],[
-    flux_extra_libs=""
     found_flux=no
 
     # Check for FLUX library in the default location.
     AS_IF([test x$with_flux = xyes -o x$with_flux = xcheck],[
-      AC_SEARCH_LIBS([flux_open], [flux-core], [found_flux=yes], [found_flux=no], [$flux_extra_libs])
+      PKG_CHECK_MODULES([FLUX], [flux-core], [found_flux=yes], [found_flux=no])
     ])
 
-    AS_IF([test x$found_flux = xno -a x$with_flux != xyes -a x$with_flux != xcheck ],[
+    AC_MSG_WARN([FLUX_CFLAGS is $FLUX_CFLAGS])
+    AC_MSG_WARN([FLUX_LIBS is $FLUX_LIBS])
+    AC_MSG_WARN([FLUX_LDFLAGS is $FLUX_LDFLAGS])
+
+    AS_IF([test x$with_flux != xyes -a x$with_flux != xcheck -a x$found_flux = xno ],[
       AC_CACHE_CHECK([for FLUX include directory],
                      [x_ac_cv_flux_includedir],
                      [FLUX_INCLUDEDIR="$with_flux/include/"
@@ -46,7 +49,7 @@ AC_DEFUN([X_AC_FLUX], [
                       _x_ac_flux_libs_save=$LIBS
                       FLUX_LIBDIR="$with_flux/lib/"
                       AS_IF([test -d "$FLUX_LIBDIR"],[
-                        LIBS="-L$FLUX_LIBDIR -lflux-core $flux_extra_libs $LIBS"
+                        LIBS="-L$FLUX_LIBDIR -lflux-core $LIBS"
                         CFLAGS="-I $x_ac_cv_flux_includedir"
                         AC_LINK_IFELSE(
                           [AC_LANG_PROGRAM([#include <flux/core.h>], [flux_open(NULL,0);])],
@@ -71,7 +74,7 @@ AC_DEFUN([X_AC_FLUX], [
         [AC_MSG_ERROR([FLUX not found!])],
         [AC_MSG_WARN([not building support for FLUX])])
     ], [
-        FLUX_LIBADD="-lflux-core $flux_extra_libs"
+        FLUX_LIBADD="-lflux-core"
         AC_SUBST(FLUX_LIBADD)
         AC_SUBST(FLUX_CPPFLAGS)
         AC_SUBST(FLUX_LDFLAGS)
