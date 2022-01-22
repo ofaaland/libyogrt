@@ -28,6 +28,9 @@ AM_MAINTAINER_MODE
 AC_PROG_CC
 AC_PROG_LIBTOOL
 
+# Check for pkg-config support
+PKG_PROG_PKG_CONFIG
+
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_INLINE
 
