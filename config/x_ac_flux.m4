@@ -31,9 +31,6 @@ AC_DEFUN([X_AC_FLUX], [
       PKG_CHECK_MODULES([FLUX], [flux-core], [found_flux=yes], [found_flux=no])
     ])
 
-    AC_MSG_WARN([FLUX_CFLAGS is $FLUX_CFLAGS])
-    AC_MSG_WARN([FLUX_LIBS is $FLUX_LIBS])
-
     AS_IF([test x$with_flux != xyes -a x$with_flux != xcheck -a x$found_flux = xno ],[
       AC_CACHE_CHECK([for FLUX include directory],
                      [x_ac_cv_flux_includedir],
